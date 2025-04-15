@@ -1,0 +1,3 @@
+// No middleware needed
+export {};
+

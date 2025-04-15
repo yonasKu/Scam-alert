@@ -1,0 +1,111 @@
+{
+  "app": {
+    "title": "Scam Watch",
+    "description": "Community platform for reporting price gouging and overcharges"
+  },
+  "nav": {
+    "home": "Home",
+    "reports": "Reports",
+    "about": "About",
+    "newReport": "Report Price Gouging",
+    "watchlist": "Watchlist"
+  },
+  "home": {
+    "hero": {
+      "title": "Report Price Gouging",
+      "subtitle": "Help protect your community from unfair pricing practices",
+      "cta": "Report Now"
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "step1": "Report Incidents",
+      "step1Desc": "Submit details about price gouging you've encountered",
+      "step2": "Community Verification",
+      "step2Desc": "Others can confirm your reports, adding credibility",
+      "step3": "Take Action",
+      "step3Desc": "Use verified reports to make informed choices and alert authorities"
+    },
+    "recentReports": {
+      "title": "Recent Reports",
+      "viewAll": "View All Reports",
+      "noReports": "No reports yet"
+    },
+    "map": {
+      "title": "Price Gouging Map",
+      "description": "See where price gouging has been reported in your area"
+    }
+  },
+  "reports": {
+    "title": "Price Gouging Reports",
+    "filter": "Filter Reports",
+    "search": "Search reports...",
+    "sortBy": "Sort by",
+    "newest": "Newest",
+    "oldest": "Oldest",
+    "mostVerified": "Most Verified",
+    "category": "Category",
+    "location": "Location",
+    "newReport": "Submit New Report",
+    "noReports": "No reports found"
+  },
+  "report": {
+    "new": {
+      "title": "Report Price Gouging",
+      "businessInfo": "Business Information",
+      "businessName": "Business Name",
+      "businessType": "Business Type",
+      "location": "Location",
+      "address": "Address",
+      "city": "City",
+      "state": "State",
+      "zipCode": "Zip Code",
+      "reportDetails": "Report Details",
+      "itemName": "Item Name",
+      "itemCategory": "Item Category",
+      "normalPrice": "Normal Price",
+      "gougingPrice": "Gouging Price",
+      "dateObserved": "Date Observed",
+      "description": "Description",
+      "evidence": "Evidence (Optional)",
+      "uploadPhoto": "Upload Photo",
+      "submit": "Submit Report",
+      "cancel": "Cancel"
+    },
+    "detail": {
+      "verified": "Verified",
+      "reported": "Reported",
+      "by": "by",
+      "on": "on",
+      "verifyReport": "Verify This Report",
+      "reportToAuthorities": "Report to Authorities"
+    }
+  },
+  "about": {
+    "title": "About Scam Watch",
+    "mission": "Our Mission",
+    "missionText": "Scam Watch is dedicated to empowering consumers by providing a platform to report and track price gouging incidents. We believe in fair pricing practices and consumer protection.",
+    "howToUse": "How to Use",
+    "howToUseText": "Report price gouging incidents you encounter, verify others' reports, and use the information to make informed purchasing decisions.",
+    "contact": "Contact Us",
+    "contactText": "Have questions or suggestions? Reach out to us."
+  },
+  "footer": {
+    "rights": "All Rights Reserved",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "contact": "Contact"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "submit": "Submit",
+    "verify": "Verify",
+    "report": "Report"
+  },
+  "language": {
+    "english": "English",
+    "amharic": "Amharic"
+  }
+}

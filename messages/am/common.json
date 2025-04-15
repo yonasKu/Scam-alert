@@ -1,0 +1,111 @@
+{
+  "app": {
+    "title": "ስካም ዎች",
+    "description": "የዋጋ ግፊት እና ከመጠን በላይ ክፍያዎችን ለማሳወቅ የማህበረሰብ መድረክ"
+  },
+  "nav": {
+    "home": "መነሻ",
+    "reports": "ሪፖርቶች",
+    "about": "ስለኛ",
+    "newReport": "የዋጋ ግፊት ሪፖርት አድርግ",
+    "watchlist": "የክትትል ዝርዝር"
+  },
+  "home": {
+    "hero": {
+      "title": "የዋጋ ግፊት ሪፖርት አድርግ",
+      "subtitle": "ማህበረሰብዎን ከፍትሃዊ ያልሆኑ የዋጋ አሰራሮች ለመጠበቅ ይርዱ",
+      "cta": "አሁን ሪፖርት አድርግ"
+    },
+    "howItWorks": {
+      "title": "እንዴት እንደሚሰራ",
+      "step1": "ክስተቶችን ሪፖርት ያድርጉ",
+      "step1Desc": "ያጋጠሙዎትን የዋጋ ግፊቶች ዝርዝሮችን ያስገቡ",
+      "step2": "የማህበረሰብ ማረጋገጫ",
+      "step2Desc": "ሌሎች ሪፖርቶችዎን ማረጋገጥ ይችላሉ፣ አመኔታን በመጨመር",
+      "step3": "እርምጃ ይውሰዱ",
+      "step3Desc": "የተረጋገጡ ሪፖርቶችን ለማወቅ እና ባለስልጣናትን ለማሳወቅ ይጠቀሙ"
+    },
+    "recentReports": {
+      "title": "የቅርብ ጊዜ ሪፖርቶች",
+      "viewAll": "ሁሉንም ሪፖርቶች ይመልከቱ",
+      "noReports": "እስካሁን ምንም ሪፖርቶች የሉም"
+    },
+    "map": {
+      "title": "የዋጋ ግፊት ካርታ",
+      "description": "በአካባቢዎ የዋጋ ግፊት የት እንደተሪፖርት ተደርጎ ይመልከቱ"
+    }
+  },
+  "reports": {
+    "title": "የዋጋ ግፊት ሪፖርቶች",
+    "filter": "ሪፖርቶችን አጣራ",
+    "search": "ሪፖርቶችን ይፈልጉ...",
+    "sortBy": "አስተካክል በ",
+    "newest": "አዲስ",
+    "oldest": "ቆየት ያለ",
+    "mostVerified": "በጣም የተረጋገጠ",
+    "category": "ምድብ",
+    "location": "ቦታ",
+    "newReport": "አዲስ ሪፖርት አስገባ",
+    "noReports": "ምንም ሪፖርቶች አልተገኙም"
+  },
+  "report": {
+    "new": {
+      "title": "የዋጋ ግፊት ሪፖርት አድርግ",
+      "businessInfo": "የንግድ መረጃ",
+      "businessName": "የንግድ ስም",
+      "businessType": "የንግድ አይነት",
+      "location": "ቦታ",
+      "address": "አድራሻ",
+      "city": "ከተማ",
+      "state": "ክልል",
+      "zipCode": "ዚፕ ኮድ",
+      "reportDetails": "የሪፖርት ዝርዝሮች",
+      "itemName": "የእቃው ስም",
+      "itemCategory": "የእቃው ምድብ",
+      "normalPrice": "መደበኛ ዋጋ",
+      "gougingPrice": "የተጋነነ ዋጋ",
+      "dateObserved": "የታየበት ቀን",
+      "description": "መግለጫ",
+      "evidence": "ማስረጃ (አማራጭ)",
+      "uploadPhoto": "ፎቶ ስቀል",
+      "submit": "ሪፖርት አስገባ",
+      "cancel": "ሰርዝ"
+    },
+    "detail": {
+      "verified": "የተረጋገጠ",
+      "reported": "የተዘገበው",
+      "by": "በ",
+      "on": "በ",
+      "verifyReport": "ይህን ሪፖርት አረጋግጥ",
+      "reportToAuthorities": "ለባለስልጣናት ሪፖርት አድርግ"
+    }
+  },
+  "about": {
+    "title": "ስለ ስካም ዎች",
+    "mission": "ተልእኮአችን",
+    "missionText": "ስካም ዎች የዋጋ ግፊት ክስተቶችን ለማሳወቅ እና ለመከታተል መድረክ በመስጠት ተጠቃሚዎችን ለማብቃት የተሰጠ ነው። በፍትሃዊ የዋጋ አሰራሮች እና የተጠቃሚ ጥበቃ እናምናለን።",
+    "howToUse": "እንዴት መጠቀም እንደሚቻል",
+    "howToUseText": "የሚያጋጥሙዎትን የዋጋ ግፊት ክስተቶች ሪፖርት ያድርጉ፣ የሌሎችን ሪፖርቶች ያረጋግጡ፣ እና መረጃውን ለማወቅ ግዢ ውሳኔዎችን ለመወሰን ይጠቀሙ።",
+    "contact": "ያግኙን",
+    "contactText": "ጥያቄዎች ወይም ጥቆማዎች አሉዎት? ያግኙን።"
+  },
+  "footer": {
+    "rights": "መብቱ በህግ የተጠበቀ ነው",
+    "privacy": "የግላዊነት ፖሊሲ",
+    "terms": "የአገልግሎት ውሎች",
+    "contact": "ያግኙን"
+  },
+  "actions": {
+    "save": "አስቀምጥ",
+    "cancel": "ሰርዝ",
+    "edit": "አስተካክል",
+    "delete": "ሰርዝ",
+    "submit": "አስገባ",
+    "verify": "አረጋግጥ",
+    "report": "ሪፖርት አድርግ"
+  },
+  "language": {
+    "english": "እንግሊዝኛ",
+    "amharic": "አማርኛ"
+  }
+}
