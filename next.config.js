@@ -10,11 +10,8 @@ const nextConfig = {
       },
     ],
   },
-  // Configure i18n for the multi-language support
-  i18n: {
-    locales: ['en', 'am'],
-    defaultLocale: 'en',
-  },
+  // App Router handles i18n through the [locale] folder structure
+  // Do not use the legacy i18n config with App Router
 };
 
 module.exports = nextConfig;
