@@ -3,7 +3,7 @@ module.exports = {
   locales: ['en', 'am'],
   
   // Default locale
-  defaultLocale: 'en',
+  defaultLocale: 'am',
   
   // Domains - remove this section if not using domain-based routing
   // domains: [
