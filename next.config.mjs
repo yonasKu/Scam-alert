@@ -1,3 +1,7 @@
+import createNextIntlPlugin from 'next-intl/plugin';
+
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -10,8 +14,6 @@ const nextConfig = {
       },
     ],
   },
-  // App Router handles i18n through the [locale] folder structure
-  // Do not use the legacy i18n config with App Router
 };
 
-module.exports = nextConfig;
+export default withNextIntl(nextConfig);
