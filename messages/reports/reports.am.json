@@ -1,0 +1,51 @@
+{
+  "pageTitle": "የዋጋ ንረት ሪፖርቶች",
+  "pageDescription": "በአገሪቱ በሙሉ ያሉ ከማህበረሰብ የቀረቡ የዋጋ ንረት ሪፖርቶችን ይመልከቱ",
+  "reportsCountText": "{count} ሪፖርቶች ቀርበዋል",
+  "submitNewReport": "አዲስ ሪፖርት አስገባ",
+  "filterCategories": {
+    "allReports": "ሁሉም ሪፖርቶች",
+    "groceries": "የመኖሪያ ቤት እቃዎች",
+    "fuel": "ነዳጅ",
+    "essentials": "መሰረታዊ ነገሮች",
+    "electronics": "ኤሌክትሮኒክስ",
+    "restaurants": "ምግብ ቤቶች",
+    "accommodation": "መኖሪያ",
+    "noReceipt": "ደረሰኝ የሌለው",
+    "suspiciousActivity": "አጠራጣሪ እንቅስቃሴ",
+    "unauthorizedBusiness": "ያልተፈቀደ ንግድ"
+  },
+  "reportCard": {
+    "reportedBadge": "ሪፖርት ተደርጓል",
+    "viewDetails": "ዝርዝሮችን ይመልከቱ",
+    "location": "ቦታ፦ {location}",
+    "reportedOn": "በ {date} ላይ ሪፖርት ተደርጓል",
+    "category": "ምድብ፦ {category}",
+    "priceBefore": "ቀድሞ፦ {before}",
+    "priceAfter": "በኋላ፦ {after}",
+    "reporterComment": "የሪፖርት አድራጊ አስተያየት",
+    "businessName": "የንግድ ስም፦ {name}",
+    "item": "ዕቃ፦ {item}"
+  },
+  "reportDetails": {
+    "modalTitle": "የሪፖርት ዝርዝሮች",
+    "businessName": "የንግድ ስም",
+    "location": "ቦታ",
+    "reportedOn": "ሪፖርት የተደረገበት",
+    "category": "ምድብ",
+    "item": "ዕቃ",
+    "priceChange": "የዋጋ ለውጥ",
+    "before": "ቀድሞ",
+    "after": "በኋላ",
+    "reporterComment": "የሪፖርት አድራጊ አስተያየት",
+    "closeButton": "ዝጋ"
+  },
+  "noReportsFound": "ለተመረጠው አጣሪ ምንም ሪፖርቶች አልተገኙም።",
+  "loadMore": "ተጨማሪ ሪፖርቶችን ጫን",
+  "originalPrice": "የመጀመሪያ ዋጋ",
+  "gougedPrice": "የጨመረ ዋጋ",
+  "receiptIssue": "የደረሰኝ ችግር",
+  "suspiciousActivityLabel": "አጠራጣሪ እንቅስቃሴ",
+  "unauthorizedIssue": "ያልተፈቀደ ችግር",
+  "verified": "የተረጋገጠ"
+}

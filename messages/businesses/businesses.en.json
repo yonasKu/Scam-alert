@@ -1,0 +1,36 @@
+{
+  "title": "Scam Watch Business Database",
+  "description": "Find detailed information about businesses with reported price gouging incidents",
+  "businessesReported": "{count} Businesses Reported",
+  "reportBusiness": "Report a Business",
+  "searchPlaceholder": "Search by business name, location, or scam type...",
+  "filterByReportType": "Filter by Report Type",
+  "scamScoreExplanation": "Scam Score Explanation",
+  "riskLevels": {
+    "lowRisk": "1-3.9: Low Risk",
+    "moderateRisk": "4-6.9: Moderate Risk",
+    "highRisk": "7-10: High Risk"
+  },
+  "tableHeaders": {
+    "businessName": "Business Name",
+    "category": "Category",
+    "location": "Location",
+    "scamScore": "Scam Score",
+    "reports": "Reports",
+    "lastReported": "Last Reported",
+    "mostCommonScams": "Most Common Scams",
+    "actions": "Actions"
+  },
+  "reportTypes": {
+    "all": "All Reports",
+    "price_gouging": "Price Gouging",
+    "no_receipt": "No Receipt",
+    "suspicious_activity": "Suspicious Activity",
+    "unauthorized_business": "Unauthorized Business",
+    "false_advertising": "False Advertising",
+    "hidden_fees": "Hidden Fees",
+    "other": "Other Issues"
+  },
+  "noBusinessesFound": "No businesses found matching your search criteria",
+  "viewDetails": "View Details"
+}

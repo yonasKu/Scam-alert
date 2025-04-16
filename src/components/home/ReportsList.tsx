@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import { ImageWithFallback } from "@/components/ui/image-fallback";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import { Modal } from "@/components/ui/modal";
-import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Clock, DollarSign, Tag, Store, MessageSquare } from "lucide-react";
+import { MapPin, Calendar, Tag, Store, MessageSquare } from "lucide-react";
 
 type ReportPrice = {
   before: string;
@@ -36,7 +35,10 @@ type ReportsListProps = {
   reports: Report[];
 };
 
+import { useTranslations } from 'next-intl';
+
 export default function ReportsList({ reports }: ReportsListProps) {
+  const t = useTranslations('ReportsList');
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   
   const openReportDetails = (report: Report) => {
@@ -88,7 +90,7 @@ export default function ReportsList({ reports }: ReportsListProps) {
               WebkitTextFillColor: "transparent",
               backgroundClip: "text"
             }}>
-              Recently Reported Businesses
+              {t('sectionTitle')}
             </h2>
           </div>
           <div style={{
@@ -97,7 +99,7 @@ export default function ReportsList({ reports }: ReportsListProps) {
             fontSize: "clamp(1rem, 1.5vw, 1.125rem)",
             textAlign: "center"
           }}>
-            These businesses have been reported for potential price gouging in the last 30 days
+            {t('sectionDescription')}
           </div>
         </div>
 
@@ -131,7 +133,7 @@ export default function ReportsList({ reports }: ReportsListProps) {
                 width: "100%",
                 position: "relative"
               }}>
-                <Image
+                <ImageWithFallback
                   src={report.imageUrl}
                   alt={report.businessName}
                   fill
@@ -178,7 +180,7 @@ export default function ReportsList({ reports }: ReportsListProps) {
                       alignItems: "center",
                       gap: "0.25rem"
                     }}>
-                      <span>Reported</span>
+                      <span>{t('reportedBadge')}</span>
                     </div>
                   </div>
                   <div style={{
@@ -272,11 +274,11 @@ export default function ReportsList({ reports }: ReportsListProps) {
               </CardContent>
 
               <CardFooter>
-                <div style={{ display: "flex", gap: "0.5rem", width: "100%" }}>
+                <div style={{ display: "flex", width: "100%" }}>
                   <Button 
                     size="sm" 
                     style={{ 
-                      flex: "1",
+                      width: "100%",
                       fontWeight: "500",
                       backgroundColor: "hsl(var(--primary))",
                       color: "white",
@@ -296,32 +298,7 @@ export default function ReportsList({ reports }: ReportsListProps) {
                     }}
                     onClick={() => openReportDetails(report)}
                   >
-                    Quick View
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    asChild
-                    style={{ 
-                      flex: "1",
-                      fontWeight: "500",
-                      backgroundColor: "hsl(var(--secondary))",
-                      color: "hsl(var(--secondary-foreground))",
-                      transition: "all 0.2s ease",
-                      padding: "0.6rem 0.8rem",
-                      boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-                      border: "none",
-                      cursor: "pointer"
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.15)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "";
-                      e.currentTarget.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)";
-                    }}
-                  >
-                    <Link href={`/reports/${report.id}`}>Full Report</Link>
+                    {t('viewDetailsButton')}
                   </Button>
                 </div>
               </CardFooter>
@@ -348,7 +325,7 @@ export default function ReportsList({ reports }: ReportsListProps) {
       <Modal 
         isOpen={selectedReport !== null} 
         onClose={closeReportDetails}
-        title={selectedReport?.title || "Report Details"}
+        title={selectedReport?.title || t('modalTitle')}
         size="md"
       >
         {selectedReport && (
@@ -360,7 +337,7 @@ export default function ReportsList({ reports }: ReportsListProps) {
             
             {/* Image */}
             <div style={{ position: "relative", height: "300px", width: "100%", borderRadius: "0.5rem", overflow: "hidden" }}>
-              <Image
+              <ImageWithFallback
                 src={selectedReport.imageUrl}
                 alt={selectedReport.title}
                 fill
@@ -378,18 +355,18 @@ export default function ReportsList({ reports }: ReportsListProps) {
               borderRadius: "0.5rem" 
             }}>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-                <div style={{ fontSize: "0.875rem", fontWeight: "500" }}>Original Price</div>
+                <div style={{ fontSize: "0.875rem", fontWeight: "500" }}>{t('modalPriceBefore')}</div>
                 <div style={{ fontSize: "1.25rem", fontWeight: "700" }}>{selectedReport.price.before}</div>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-                <div style={{ fontSize: "0.875rem", fontWeight: "500", color: "hsl(var(--destructive))" }}>Gouged Price</div>
+                <div style={{ fontSize: "0.875rem", fontWeight: "500", color: "hsl(var(--destructive))" }}>{t('modalPriceAfter')}</div>
                 <div style={{ fontSize: "1.25rem", fontWeight: "700", color: "hsl(var(--destructive))" }}>{selectedReport.price.after}</div>
               </div>
             </div>
             
             {/* Details */}
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              <h3 style={{ fontSize: "1.125rem", fontWeight: "600" }}>Details</h3>
+              <h3 style={{ fontSize: "1.125rem", fontWeight: "600" }}>{t('modalTitle')}</h3>
               
               <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -441,7 +418,7 @@ export default function ReportsList({ reports }: ReportsListProps) {
                 alignItems: "center" 
               }}>
                 <MessageSquare size={18} style={{ marginRight: "0.5rem" }} />
-                Reporter Comment
+                {t('modalReporterComment')}
               </h3>
               <div style={{ 
                 padding: "1rem", 
@@ -467,7 +444,6 @@ export default function ReportsList({ reports }: ReportsListProps) {
             <div style={{ 
               display: "flex", 
               justifyContent: "flex-end", 
-              gap: "0.75rem", 
               marginTop: "1rem" 
             }}>
               <button 
@@ -484,24 +460,6 @@ export default function ReportsList({ reports }: ReportsListProps) {
               >
                 Close
               </button>
-              <Link 
-                href={`/reports/${selectedReport.id}`}
-                style={{
-                  backgroundColor: "hsl(var(--primary))",
-                  color: "white",
-                  border: "none",
-                  padding: "0.5rem 1rem",
-                  borderRadius: "0.25rem",
-                  textDecoration: "none",
-                  fontWeight: "500",
-                  fontSize: "0.875rem",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                }}
-              >
-                Full Report Page
-              </Link>
             </div>
           </div>
         )}

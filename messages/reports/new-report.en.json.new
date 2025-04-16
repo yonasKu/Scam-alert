@@ -1,0 +1,128 @@
+{
+  "title": "Report Consumer Issues",
+  "subtitle": "Help your community by reporting unfair business practices",
+  "form": {
+    "fields": {
+      "title": {
+        "label": "Report Title *",
+        "placeholder": "Brief description of the issue"
+      },
+      "businessName": {
+        "label": "Business Name *",
+        "placeholder": "Name of the store or business"
+      },
+      "location": {
+        "label": "Location *",
+        "placeholder": "Address or area of the business"
+      },
+      "category": {
+        "label": "Category *",
+        "options": {
+          "default": "Select a category",
+          "groceries": "Groceries",
+          "fuel": "Fuel",
+          "essentials": "Essentials",
+          "electronics": "Electronics",
+          "restaurants": "Restaurants",
+          "accommodation": "Accommodation",
+          "noReceipt": "No Receipt Provided",
+          "other": "Other"
+        }
+      },
+      "reportType": {
+        "label": "What are you reporting? *"
+      },
+      "item": {
+        "label": "Item Name",
+        "placeholder": "Name of the product or service"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Describe what happened in detail"
+      },
+      "photo": {
+        "label": "Upload Photo (optional)",
+        "uploadText": "Click to upload or drag and drop",
+        "fileFormats": "PNG, JPG, or WEBP up to 5MB"
+      }
+    },
+    "reportDetails": {
+      "title": "Report Details",
+      "description": "Help protect your community by reporting businesses engaged in unfair practices. All fields marked with * are required.",
+      "priceBefore": "Original Price",
+      "priceBeforePlaceholder": "e.g. $1.99",
+      "priceAfter": "Gouged Price",
+      "priceAfterPlaceholder": "e.g. $5.99",
+      "item": "Item/Service",
+      "itemPlaceholder": "What item or service is this about?"
+    },
+    "evidence": {
+      "title": "Evidence",
+      "photoUpload": "Upload Photo (optional)",
+      "photoDescription": "Upload a photo of the price tag, receipt, or other evidence",
+      "receiptIssue": "Receipt Issue Type",
+      "receiptIssuePlaceholder": "Describe any issues with the receipt",
+      "receiptIssueTypes": {
+        "placeholder": "Select receipt issue",
+        "noReceipt": "No receipt offered at all",
+        "refusedReceipt": "Receipt refused when requested",
+        "incompleteReceipt": "Incomplete/illegible receipt",
+        "verbalReceipt": "Only verbal confirmation, no paper receipt",
+        "handwrittenReceipt": "Suspicious handwritten receipt"
+      }
+    },
+    "contact": {
+      "title": "Contact Information (Optional)",
+      "contactInfo": "Your Email or Phone",
+      "contactInfoPlaceholder": "How can we contact you if needed?",
+      "privacyNote": "Your contact information will remain private"
+    }
+  },
+  "categories": {
+    "groceries": "Groceries",
+    "fuel": "Fuel/Gas",
+    "pharmacy": "Pharmacy",
+    "restaurant": "Restaurant",
+    "retail": "Retail Store",
+    "hotel": "Hotel/Accommodation",
+    "transportation": "Transportation",
+    "utilities": "Utilities",
+    "other": "Other"
+  },
+  "reportTypes": {
+    "priceGouging": {
+      "title": "Price Gouging",
+      "description": "Report unreasonable price increases, especially during emergencies"
+    },
+    "noReceipt": {
+      "title": "No Receipt Provided",
+      "description": "Report businesses that don't provide proper receipts for purchases"
+    },
+    "suspiciousActivity": {
+      "title": "Suspicious Activity", 
+      "description": "Report card skimming, counterfeit products, or other suspicious activities"
+    },
+    "unauthorizedBusiness": {
+      "title": "Unauthorized Business",
+      "description": "Report businesses operating without proper licensing or with legal violations"
+    },
+    "falseAdvertising": {
+      "title": "False Advertising",
+      "description": "Report misleading advertisements or product claims"
+    },
+    "hiddenFees": {
+      "title": "Hidden Fees",
+      "description": "Report undisclosed fees or unexpected charges"
+    },
+    "other": {
+      "title": "Other Consumer Issue",
+      "description": "Report other unfair business practices not listed above"
+    }
+  },
+  "buttons": {
+    "cancel": "Cancel",
+    "submit": "Submit Report"
+  },
+  "successMessage": "Thank you for your report! Your contribution helps protect the community.",
+  "errorMessage": "There was an error submitting your report. Please try again."
+}

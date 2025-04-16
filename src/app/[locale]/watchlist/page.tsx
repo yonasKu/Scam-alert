@@ -1,26 +1,73 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function WatchlistPage() {
+  const params = useParams();
+  const locale = params.locale as string;
+  const [translations, setTranslations] = useState<Record<string, any>>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedIssueType, setSelectedIssueType] = useState("all");
+  
+  // Load translations
+  useEffect(() => {
+    const loadTranslations = async () => {
+      try {
+        // Try to load the translations for the current locale
+        const translationsModule = await import(`../../../../messages/watchlist/watchlist.${locale}.json`);
+        setTranslations(translationsModule.default);
+      } catch (error) {
+        // Fallback to English if the requested locale is not available
+        console.error(`Failed to load translations for locale ${locale}, falling back to English`, error);
+        const fallbackModule = await import(`../../../../messages/watchlist/watchlist.en.json`);
+        setTranslations(fallbackModule.default);
+      }
+    };
+    
+    loadTranslations();
+  }, [locale]);
+  
+  // Translation helper function
+  const t = (key: string, params?: Record<string, string | number>): string => {
+    if (!translations) return key; // Return the key if translations are not loaded yet
+    
+    const keys = key.split('.');
+    let value: any = translations;
+    
+    for (const k of keys) {
+      if (value && typeof value === 'object' && k in value) {
+        value = value[k];
+      } else {
+        return key; // Return the key if translation is not found
+      }
+    }
+    
+    if (typeof value === 'string' && params) {
+      // Replace parameters in the translation string
+      return Object.entries(params).reduce((str, [param, val]) => {
+        return str.replace(`{${param}}`, String(val));
+      }, value);
+    }
+    
+    return typeof value === 'string' ? value : key;
+  };
 
   // Issue type filter options
   const issueTypes = [
-    { id: "all", label: "All Issues" },
-    { id: "suspicious_charges", label: "Suspicious Charges" },
-    { id: "counterfeit", label: "Counterfeit Products" },
-    { id: "no_receipt", label: "No Receipts" },
-    { id: "misrepresentation", label: "Misrepresentation" },
-    { id: "unauthorized_repairs", label: "Unauthorized Repairs" }
+    { id: "all", label: t("issueTypes.all") },
+    { id: "suspicious_charges", label: t("issueTypes.suspicious_charges") },
+    { id: "counterfeit", label: t("issueTypes.counterfeit") },
+    { id: "no_receipt", label: t("issueTypes.no_receipt") },
+    { id: "misrepresentation", label: t("issueTypes.misrepresentation") },
+    { id: "unauthorized_repairs", label: t("issueTypes.unauthorized_repairs") }
   ];
   
   // Mock data for suspicious businesses with consumer protection issues
-  const watchlistBusinesses = [
+  const watchlistBusinessesData = [
     {
       id: 1,
       name: "FastTech Gadgets",
@@ -161,6 +208,9 @@ export default function WatchlistPage() {
     }
   ];
 
+  // Use useMemo to memoize the watchlistBusinesses array
+  const watchlistBusinesses = useMemo(() => watchlistBusinessesData, []);
+
   // Filter and sort businesses
   const filteredBusinesses = useMemo(() => {
     return watchlistBusinesses.filter(business => {
@@ -214,10 +264,9 @@ export default function WatchlistPage() {
               background: "linear-gradient(to right, hsl(var(--warning)), hsl(var(--foreground)))",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              textFillColor: "transparent"
+              backgroundClip: "text"
             }}>
-              Consumer Watchlist
+              {t("title")}
             </h1>
             
             <div style={{ 
@@ -227,7 +276,7 @@ export default function WatchlistPage() {
               maxWidth: "700px",
               lineHeight: 1.6
             }}>
-              Monitor businesses with suspicious activities, missing receipts, counterfeit products, and other consumer protection concerns
+              {t("description")}
             </div>
           </div>
         </div>
@@ -252,12 +301,12 @@ export default function WatchlistPage() {
                     fontSize: "0.875rem", 
                     fontWeight: "500" 
                   }}>
-                    Search Businesses
+                    {t("search.label")}
                   </label>
                   <input
                     type="text"
                     id="search"
-                    placeholder="Search by name, category, location, or issue details..."
+                    placeholder={t("search.placeholder")}
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
                     style={{
@@ -279,7 +328,7 @@ export default function WatchlistPage() {
                     fontSize: "0.875rem", 
                     fontWeight: "500" 
                   }}>
-                    Filter by Issue Type
+                    {t("filter.label")}
                   </label>
                   <div style={{
                     display: "flex",
@@ -324,7 +373,7 @@ export default function WatchlistPage() {
             color: "hsl(var(--muted-foreground))",
             fontSize: "0.9375rem"
           }}>
-            Showing {filteredBusinesses.length} businesses on watchlist
+            {t("resultsCount", { count: filteredBusinesses.length })}
           </div>
 
           {/* Business Cards */}
@@ -365,8 +414,9 @@ export default function WatchlistPage() {
                       <CardTitle style={{ fontSize: "1.25rem", marginBottom: "0.5rem", fontFamily: "var(--font-heading)" }}>
                         {business.name}
                       </CardTitle>
-                      <CardDescription style={{ fontSize: "0.9375rem" }}>
-                        <div style={{
+                      {/* Removed CardDescription and replaced with regular divs to avoid p > div nesting */}
+                      <div style={{ fontSize: "0.9375rem", color: "hsl(var(--muted-foreground))" }}>
+                        <span style={{
                           display: "flex",
                           alignItems: "center",
                           gap: "0.5rem",
@@ -377,8 +427,8 @@ export default function WatchlistPage() {
                             <circle cx="12" cy="10" r="3"/>
                           </svg>
                           {business.location}
-                        </div>
-                        <div style={{
+                        </span>
+                        <span style={{
                           display: "flex",
                           alignItems: "center",
                           gap: "0.5rem"
@@ -390,8 +440,8 @@ export default function WatchlistPage() {
                             <path d="M12 18h.01"/>
                           </svg>
                           {business.category}
-                        </div>
-                      </CardDescription>
+                        </span>
+                      </div>
                     </div>
                     <div style={{
                       backgroundColor: business.alertLevel === "High"
@@ -419,7 +469,7 @@ export default function WatchlistPage() {
                           <line x1="12" y1="17" x2="12.01" y2="17"/>
                         </svg>
                       )}
-                      {business.alertLevel}
+                      {t(`alertLevels.${business.alertLevel.toLowerCase()}`)}
                     </div>
                   </div>
                 </CardHeader>
@@ -433,7 +483,7 @@ export default function WatchlistPage() {
                       marginBottom: "0.75rem",
                       color: "hsl(var(--muted-foreground))"
                     }}>
-                      Reported Issues
+                      {t("businessDetails.reportedIssues")}
                     </h4>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
                       {business.issueTypes.map((issue, index) => {
@@ -441,66 +491,78 @@ export default function WatchlistPage() {
                         const issueLabel = issueTypes.find(t => t.id === issue.type)?.label || issue.type;
                         
                         // Choose icon and color based on issue type
-                        let iconColor = "";
-                        let Icon = null;
+                        let iconColor = "hsl(var(--foreground))";
+                        let Icon: React.FC = () => null;
                         
-                        switch(issue.type) {
+                        switch (issue.type) {
                           case "suspicious_charges":
                             iconColor = "hsl(var(--destructive))";
-                            Icon = () => (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <rect width="20" height="14" x="2" y="5" rx="2"/>
-                                <line x1="2" x2="22" y1="10" y2="10"/>
-                              </svg>
-                            );
+                            Icon = function SuspiciousChargesIcon() {
+                              return (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <rect width="20" height="14" x="2" y="5" rx="2"/>
+                                  <line x1="2" x2="22" y1="10" y2="10"/>
+                                </svg>
+                              );
+                            };
                             break;
                           case "counterfeit":
                             iconColor = "hsl(var(--warning))";
-                            Icon = () => (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
-                                <path d="M5 13a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v4a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-4a2 2 0 0 1 2-2h1a2 2 0 0 0 2-2v-2a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1"/>
-                              </svg>
-                            );
+                            Icon = function CounterfeitIcon() {
+                              return (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+                                  <path d="M5 13a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v4a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-4a2 2 0 0 1 2-2h1a2 2 0 0 0 2-2v-2a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1"/>
+                                </svg>
+                              );
+                            };
                             break;
                           case "no_receipt":
-                            iconColor = "hsl(var(--destructive))";
-                            Icon = () => (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <rect width="18" height="18" x="3" y="3" rx="2" />
-                                <line x1="9" x2="15" y1="9" y2="9" />
-                                <line x1="9" x2="15" y1="15" y2="15" />
-                              </svg>
-                            );
+                            iconColor = "hsl(var(--amber))";
+                            Icon = function NoReceiptIcon() {
+                              return (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <rect width="18" height="18" x="3" y="3" rx="2" />
+                                  <line x1="9" x2="15" y1="9" y2="9" />
+                                  <line x1="9" x2="15" y1="15" y2="15" />
+                                </svg>
+                              );
+                            };
                             break;
                           case "misrepresentation":
-                            iconColor = "hsl(var(--warning))";
-                            Icon = () => (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="m3 8 4-4 4 4"/>
-                                <path d="M11 12H3"/>
-                                <path d="m9 16 4 4 4-4"/>
-                                <path d="M20 12h-8"/>
-                              </svg>
-                            );
+                            iconColor = "hsl(var(--orange))";
+                            Icon = function MisrepresentationIcon() {
+                              return (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="m3 8 4-4 4 4"/>
+                                  <path d="M11 12H3"/>
+                                  <path d="m9 16 4 4 4-4"/>
+                                  <path d="M20 12h-8"/>
+                                </svg>
+                              );
+                            };
                             break;
                           case "unauthorized_repairs":
-                            iconColor = "hsl(var(--destructive))";
-                            Icon = () => (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-                              </svg>
-                            );
+                            iconColor = "hsl(var(--muted))";
+                            Icon = function UnauthorizedRepairsIcon() {
+                              return (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                                </svg>
+                              );
+                            };
                             break;
                           default:
                             iconColor = "hsl(var(--muted-foreground))";
-                            Icon = () => (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                                <path d="M12 17h.01"/>
-                              </svg>
-                            );
+                            Icon = function DefaultIcon() {
+                              return (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <circle cx="12" cy="12" r="10"/>
+                                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                                  <path d="M12 17h.01"/>
+                                </svg>
+                              );
+                            };
                         }
                         
                         return (
@@ -514,7 +576,7 @@ export default function WatchlistPage() {
                             gap: "0.5rem"
                           }}>
                             <span style={{ color: iconColor }}>
-                              {Icon && <Icon />}
+                              <Icon />
                             </span>
                             <span>
                               {issueLabel} ({issue.count})
@@ -533,7 +595,7 @@ export default function WatchlistPage() {
                       marginBottom: "0.5rem",
                       color: "hsl(var(--muted-foreground))"
                     }}>
-                      Details
+                      {t("businessDetails.details")}
                     </h4>
                     <div style={{ 
                       fontSize: "0.9375rem", 
@@ -563,22 +625,21 @@ export default function WatchlistPage() {
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                         <circle cx="9" cy="7" r="4"/>
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        <path d="M5 13a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v4a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-4a2 2 0 0 1 2-2h1a2 2 0 0 0 2-2v-2a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1"/>
                       </svg>
-                      <span>{business.reportCount} reports</span>
+                      <span>{business.reportCount} {t("businessDetails.reports")}</span>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="12" cy="12" r="10"/>
                         <polyline points="12 6 12 12 16 14"/>
                       </svg>
-                      <span>Last reported: {business.lastReported}</span>
+                      <span>{t("businessDetails.lastReported", { date: business.lastReported })}</span>
                     </div>
                   </div>
                   
                   <Button variant="outline" size="sm" asChild>
-                    <Link href={`/businesses/${business.id}`}>View Business</Link>
+                    <Link href={`/businesses/${business.id}`}>{t("actions.viewBusiness")}</Link>
                   </Button>
                 </CardFooter>
               </Card>
@@ -598,15 +659,15 @@ export default function WatchlistPage() {
                 <line x1="12" y1="8" x2="12" y2="12"/>
                 <line x1="12" y1="16" x2="12.01" y2="16"/>
               </svg>
-              <h3 style={{ fontSize: "1.25rem", marginBottom: "0.5rem", fontWeight: "600" }}>No businesses found</h3>
-              <div>No businesses match your current search filters.</div>
+              <h3 style={{ fontSize: "1.25rem", marginBottom: "0.5rem", fontWeight: "600" }}>{t("noResults.title")}</h3>
+              <div>{t("noResults.description")}</div>
             </div>
           )}
           
           {/* Actions */}
           <div style={{ marginTop: "3rem", textAlign: "center" }}>
             <Button asChild>
-              <Link href="/reports/new">Report a Business</Link>
+              <Link href="/reports/new">{t("actions.reportBusiness")}</Link>
             </Button>
           </div>
         </div>

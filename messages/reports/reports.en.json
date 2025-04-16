@@ -1,0 +1,51 @@
+{
+  "pageTitle": "Price Gouging Reports",
+  "pageDescription": "View community-submitted reports of price gouging incidents across the country",
+  "reportsCountText": "{count} Reports Filed",
+  "submitNewReport": "Submit New Report",
+  "filterCategories": {
+    "allReports": "All Reports",
+    "groceries": "Groceries",
+    "fuel": "Fuel",
+    "essentials": "Essentials",
+    "electronics": "Electronics",
+    "restaurants": "Restaurants",
+    "accommodation": "Accommodation",
+    "noReceipt": "No Receipt",
+    "suspiciousActivity": "Suspicious Activity",
+    "unauthorizedBusiness": "Unauthorized Business"
+  },
+  "reportCard": {
+    "reportedBadge": "Reported",
+    "viewDetails": "View Details",
+    "location": "Location: {location}",
+    "reportedOn": "Reported on {date}",
+    "category": "Category: {category}",
+    "priceBefore": "Before: {before}",
+    "priceAfter": "After: {after}",
+    "reporterComment": "Reporter Comment",
+    "businessName": "Business Name: {name}",
+    "item": "Item: {item}"
+  },
+  "reportDetails": {
+    "modalTitle": "Report Details",
+    "businessName": "Business Name",
+    "location": "Location",
+    "reportedOn": "Reported On",
+    "category": "Category",
+    "item": "Item",
+    "priceChange": "Price Change",
+    "before": "Before",
+    "after": "After",
+    "reporterComment": "Reporter's Comment",
+    "closeButton": "Close"
+  },
+  "noReportsFound": "No reports found for the selected filter.",
+  "loadMore": "Load More Reports",
+  "originalPrice": "Original Price",
+  "gougedPrice": "Gouged Price",
+  "receiptIssue": "Receipt Issue",
+  "suspiciousActivityLabel": "Suspicious Activity",
+  "unauthorizedIssue": "Unauthorized Issue",
+  "verified": "Verified"
+}

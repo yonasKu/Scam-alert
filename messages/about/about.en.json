@@ -1,0 +1,76 @@
+{
+  "title": "About Scam Watch",
+  "description": "Empowering consumers through transparency, accountability, and community action against price gouging",
+  "mission": {
+    "title": "Our Mission",
+    "paragraph1": "Scam Watch was founded with a clear mission: to combat price gouging and protect consumers from predatory pricing practices, especially during emergencies and times of crisis. We believe that transparency is the most powerful tool in creating accountability and fairness in the marketplace.",
+    "paragraph2": "Our platform serves as a centralized database where consumers can report, track, and share instances of price gouging. By collecting and analyzing this data, we aim to:",
+    "bullets": {
+      "item1": "Expose businesses engaging in unfair pricing practices",
+      "item2": "Provide consumers with information needed to make informed decisions",
+      "item3": "Assist regulatory agencies by identifying patterns of price gouging",
+      "item4": "Create a deterrent effect through public accountability",
+      "item5": "Advocate for stronger consumer protection laws and regulations"
+    }
+  },
+  "howItWorks": {
+    "title": "How Scam Watch Works",
+    "communityReporting": {
+      "title": "Community Reporting",
+      "description": "Our platform allows users to submit detailed reports of price gouging incidents. Each report includes the business name, location, price information, photos, and a description of the pricing issue. Reports are verified by our team before being published."
+    },
+    "dataAnalysis": {
+      "title": "Data Analysis & Scoring",
+      "description": "We analyze reported data to identify patterns and assign \"Scam Scores\" to businesses based on factors like the frequency of reports, severity of price increases, and whether the gouging occurred during emergencies. This helps users quickly assess risk."
+    },
+    "communityAction": {
+      "title": "Community Action",
+      "description": "Users can search our database, view reported businesses, and make informed choices about where to shop. By sharing this information, we create a powerful incentive for businesses to maintain fair pricing practices even during high-demand periods."
+    }
+  },
+  "coreValues": {
+    "title": "Our Core Values",
+    "transparency": {
+      "title": "Transparency",
+      "description": "We believe in complete transparency in our operations, data collection methods, and verification processes."
+    },
+    "fairness": {
+      "title": "Fairness",
+      "description": "We maintain strict verification standards to ensure businesses are not unfairly targeted or misrepresented."
+    },
+    "community": {
+      "title": "Community",
+      "description": "We empower communities to protect themselves through collective knowledge and shared experiences."
+    },
+    "accountability": {
+      "title": "Accountability",
+      "description": "We hold businesses accountable for their pricing practices while maintaining the highest ethical standards."
+    }
+  },
+  "team": {
+    "title": "Our Team",
+    "description": "Scam Watch was founded by a team of consumer advocates, data analysts, and technology experts committed to creating fair marketplaces. Our diverse team brings together expertise in consumer protection law, data science, and community organizing."
+  },
+  "cta": {
+    "title": "Join the Movement Against Price Gouging",
+    "description": "Help build a more fair marketplace by reporting price gouging incidents in your community",
+    "reportButton": "Report Price Gouging",
+    "viewBusinessesButton": "View Reported Businesses"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "description": "Have questions, feedback, or want to get involved? We'd love to hear from you. Get in touch with our team.",
+    "email": {
+      "title": "Email",
+      "value": "contact@scamwatch.example.com"
+    },
+    "phone": {
+      "title": "Phone",
+      "value": "+1 (555) 123-4567"
+    },
+    "address": {
+      "title": "Address",
+      "value": "123 Consumer Protection Ave, Suite 456, Fairprice City, FP 12345"
+    }
+  }
+}

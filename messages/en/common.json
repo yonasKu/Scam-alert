@@ -28,7 +28,8 @@
     "recentReports": {
       "title": "Recent Reports",
       "viewAll": "View All Reports",
-      "noReports": "No reports yet"
+      "noReports": "No reports yet",
+      "viewDetailsButton": "View Details"
     },
     "map": {
       "title": "Price Gouging Map",
@@ -94,6 +95,22 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "contact": "Contact"
+  },
+
+  "receiptTransparencySection": {
+    "sectionTitle": "Receipt Transparency",
+    "sectionDescription": "Track businesses that don't provide proper receipts or have other transparency issues",
+    "viewDetailsButton": "View Details",
+    "viewAllButton": "View All No-Receipt Businesses",
+    "modal": {
+      "receiptIssueRating": "Receipt Issue Rating",
+      "totalReports": "Total Reports",
+      "aboutBusiness": "About this Business",
+      "aboutBusinessText": "This business has been reported {count} times for receipt-related issues. The primary issue reported is \"{issue}\". The most recent report was filed on {date}.",
+      "whatThisMeans": "What This Means",
+      "whatThisMeansText": "Businesses with receipt issues may be attempting to hide income from tax authorities or denying consumers proper proof of purchase. Always ask for a receipt and report businesses that refuse to provide them.",
+      "closeButton": "Close"
+    }
   },
   "actions": {
     "save": "Save",

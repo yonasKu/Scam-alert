@@ -1,9 +1,20 @@
 "use client";
 
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from 'next-intl';
+
+import { usePathname } from 'next/navigation';
 
 export default function HowItWorks() {
+  const t = useTranslations('HowItWorks');
+  const pathname = usePathname();
+  
+  // Extract locale from path
+  const locale = pathname.split('/')[1] || 'en';
+
   return (
     <section style={{
       width: "100%",
@@ -29,7 +40,7 @@ export default function HowItWorks() {
             WebkitTextFillColor: "transparent",
             backgroundClip: "text"
           }}>
-            How Scam Watch Works
+            {t('title')}
           </h2>
 
           <div style={{
@@ -71,13 +82,13 @@ export default function HowItWorks() {
                 fontWeight: "bold",
                 marginBottom: "1rem",
                 fontFamily: "var(--font-heading)"
-              }}>Encounter Unfair Practice</h3>
+              }}>{t('step1Title')}</h3>
               <div style={{
                 fontSize: "1rem",
                 lineHeight: 1.6,
                 color: "hsl(var(--muted-foreground))"
               }}>
-                Notice a business charging excessive prices during emergencies or not providing proper receipts for purchases
+                {t('step1Desc')}
               </div>
             </div>
 
@@ -113,13 +124,13 @@ export default function HowItWorks() {
                 fontWeight: "bold",
                 marginBottom: "1rem",
                 fontFamily: "var(--font-heading)"
-              }}>Report the Incident</h3>
+              }}>{t('step2Title')}</h3>
               <div style={{
                 fontSize: "1rem",
                 lineHeight: 1.6,
                 color: "hsl(var(--muted-foreground))"
               }}>
-                Document the unfair pricing by providing business details, location, and photos of receipts or price tags.
+                {t('step2Desc')}
               </div>
             </div>
 
@@ -155,13 +166,13 @@ export default function HowItWorks() {
                 fontWeight: "bold",
                 marginBottom: "1rem",
                 fontFamily: "var(--font-heading)"
-              }}>Track and Share</h3>
+              }}>{t('step3Title')}</h3>
               <div style={{
                 fontSize: "1rem",
                 lineHeight: 1.6,
                 color: "hsl(var(--muted-foreground))"
               }}>
-                Browse reports by location or business type to identify recurring offenders and pricing patterns in your area. Share your findings with others to help keep your community informed.
+                {t('step3Desc')}
               </div>
             </div>
           </div>
@@ -173,7 +184,7 @@ export default function HowItWorks() {
           marginTop: "2rem"
         }}>
           <Button asChild>
-            <Link href="/about">Learn More About Our Process</Link>
+            <Link href={`/${locale}/about`}>{t('learnMoreButton')}</Link>
           </Button>
         </div>
       </div>

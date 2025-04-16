@@ -11,8 +11,18 @@ type WatchlistBusiness = {
   alertLevel: string;
 };
 
+import { useTranslations } from 'next-intl';
+import { usePathname } from 'next/navigation';
+
 export default function WatchlistSection() {
-  const watchlistBusinesses = [
+  const t = useTranslations('WatchlistSection');
+  const pathname = usePathname();
+  
+  // Extract locale from path
+  const locale = pathname.split('/')[1] || 'en';
+  
+  // Use the WatchlistBusiness type to define the array type explicitly
+  const watchlistBusinesses: WatchlistBusiness[] = [
     {
       id: 1,
       name: "FastTech Gadgets",
@@ -94,7 +104,7 @@ export default function WatchlistSection() {
               WebkitTextFillColor: "transparent",
               backgroundClip: "text"
             }}>
-              Consumer Watchlist
+              {t('sectionTitle')}
             </h2>
           </div>
           <div style={{
@@ -103,7 +113,7 @@ export default function WatchlistSection() {
             fontSize: "1.125rem",
             color: "hsl(var(--muted-foreground))"
           }}>
-            Businesses recently flagged for suspicious activities or potential consumer issues
+            {t('sectionDescription')}
           </div>
         </div>
 
@@ -185,7 +195,7 @@ export default function WatchlistSection() {
           marginTop: "2rem"
         }}>
           <Button asChild>
-            <Link href="/watchlist">
+            <Link href={`/${locale}/watchlist`}>
               View Full Watchlist
             </Link>
           </Button>

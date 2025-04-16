@@ -2,6 +2,9 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl'; // Import useTranslations
+import { usePathname } from 'next/navigation'; // Import usePathname
+import { LanguageSwitcher } from './LanguageSwitcher'; // Import LanguageSwitcher
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -9,6 +12,8 @@ export function Header() {
   const [mounted, setMounted] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const t = useTranslations('Header'); // Initialize translations for 'Header' namespace
+  const pathname = usePathname(); // Get current pathname for active link highlighting
 
   // Handle responsiveness properly
   useEffect(() => {
@@ -48,12 +53,26 @@ export function Header() {
     };
   }, [mobileMenuOpen]);
 
+  // Get current locale from URL path
+  const [locale, setLocale] = useState<string>('');
+  
+  useEffect(() => {
+    // Extract locale from URL path
+    const pathSegments = window.location.pathname.split('/');
+    const localeFromPath = pathSegments[1];
+    if (localeFromPath === 'en' || localeFromPath === 'am') {
+      setLocale(localeFromPath);
+    } else {
+      setLocale('en'); // Default to English if locale not found
+    }
+  }, []);
+
   const links = [
-    { href: "/", label: "Home" },
-    { href: "/reports", label: "Reports" },
-    { href: "/businesses", label: "Businesses" },
-    { href: "/watchlist", label: "Watchlist" },
-    { href: "/about", label: "About" }
+    { href: `/${locale}`, label: t('home') },
+    { href: `/${locale}/reports`, label: t('reports') },
+    { href: `/${locale}/businesses`, label: t('businesses') },
+    { href: `/${locale}/watchlist`, label: t('watchlist') },
+    { href: `/${locale}/about`, label: t('about') },
   ];
 
   return (
@@ -109,52 +128,54 @@ export function Header() {
               letterSpacing: '-0.025em',
               transition: 'color 0.2s ease'
             }}>
-              Scam Watch
+              {t('scamWatch')} {/* Use t('scamWatch') */}
             </span>
           </Link>
         </div>
 
         {/* Desktop navigation - Only show if not mobile and mounted */}
         {mounted && !isMobile && (
-          <nav className="desktop-nav" style={{
+          <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: '2rem'
           }}>
-            {links.map((link) => (
-              <Link 
-                key={link.href}
-                href={link.href} 
-                style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: 'hsl(var(--foreground))',
-                  textDecoration: 'none',
-                  position: 'relative',
-                  transition: 'color 0.2s ease',
-                  paddingBottom: '0.25rem'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = 'hsl(var(--primary))';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = 'hsl(var(--foreground))';
-                }}
-              >
-                {link.label}
-                <span style={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  width: '0%',
-                  height: '2px',
-                  backgroundColor: 'hsl(var(--primary))',
-                  transition: 'width 0.2s ease'
-                }} 
-                className="hover-line" />
-              </Link>
-            ))}
-          </nav>
+            {links.map((link) => {
+              // Check if this is the active link
+              const isActive = pathname === link.href || 
+                (pathname?.startsWith(link.href) && link.href !== `/${locale}`);
+              
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  style={{
+                    position: 'relative',
+                    fontWeight: isActive ? 600 : 500,
+                    color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
+                    textDecoration: 'none',
+                    transition: 'color 0.2s',
+                    padding: '0.5rem 0',
+                  }}
+                >
+                  {link.label}
+                  <div
+                    className={isActive ? 'active-line' : 'hover-line'}
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      height: '2px',
+                      width: isActive ? '100%' : '0%',
+                      backgroundColor: 'hsl(var(--primary))',
+                      transition: 'width 0.2s ease',
+                    }}
+                  />
+                </Link>
+              );
+            })}
+            <LanguageSwitcher /> {/* Add LanguageSwitcher here */}
+          </div>
         )}
 
         <div style={{
@@ -165,9 +186,8 @@ export function Header() {
           {/* Desktop action button - Only show if not mobile and mounted */}
           {mounted && !isMobile && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              {/* Language switcher removed */}
               <Link 
-                href="/reports/new" 
+                href={`/${locale}/reports/new`} 
                 className="action-button"
                 style={{
                   display: 'flex',
@@ -179,7 +199,7 @@ export function Header() {
                   color: 'hsl(var(--primary-foreground))',
                   fontWeight: 500,
                   borderRadius: '0.375rem',
-                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
                   transition: 'transform 0.1s, background-color 0.2s',
                   textDecoration: 'none',
                   whiteSpace: 'nowrap',
@@ -193,7 +213,7 @@ export function Header() {
                   e.currentTarget.style.backgroundColor = 'hsl(var(--primary))';
                 }}
               >
-                Report Price Gouging
+                {t('reportPriceGouging')} {/* Use t('reportPriceGouging') */}
               </Link>
             </div>
           )}
@@ -272,32 +292,40 @@ export function Header() {
             flexDirection: 'column',
             gap: '0.75rem'
           }}>
-            {links.map((link) => (
-              <Link 
-                key={link.href}
-                href={link.href} 
-                onClick={() => setMobileMenuOpen(false)}
-                style={{
-                  display: 'block',
-                  padding: '0.75rem',
-                  borderRadius: '0.375rem',
-                  fontSize: '1rem',
-                  fontWeight: 500,
-                  color: 'hsl(var(--foreground))',
-                  textDecoration: 'none',
-                  transition: 'background-color 0.2s',
-                }}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {links.map((link) => {
+              // Check if this is the active link
+              const isActive = pathname === link.href || 
+                (pathname?.startsWith(link.href) && link.href !== `/${locale}`);
+              
+              return (
+                <Link 
+                  key={link.href}
+                  href={link.href} 
+                  onClick={() => setMobileMenuOpen(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '0.75rem',
+                    borderRadius: '0.375rem',
+                    fontSize: '1rem',
+                    fontWeight: isActive ? 600 : 500,
+                    color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
+                    backgroundColor: isActive ? 'hsla(var(--primary) / 0.1)' : 'transparent',
+                    textDecoration: 'none',
+                    transition: 'background-color 0.2s, color 0.2s',
+                  }}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
             <div style={{
               marginTop: '0.5rem',
               borderTop: '1px solid hsla(var(--border) / 0.5)',
               paddingTop: '0.75rem'
             }}>
               <div style={{ marginBottom: '0.75rem' }}>
-                {/* Language switcher removed */}
+                <LanguageSwitcher /> {/* Add LanguageSwitcher to mobile menu too */}
               </div>
               <Link 
                 href="/reports/new" 
@@ -315,7 +343,7 @@ export function Header() {
                   textDecoration: 'none'
                 }}
               >
-                Report Price Gouging
+                {t('reportPriceGouging')} {/* Use t('reportPriceGouging') */}
               </Link>
             </div>
           </nav>
@@ -325,6 +353,9 @@ export function Header() {
       <style jsx>{`
         a:hover .hover-line {
           width: 100%;
+        }
+        .active-line {
+          width: 100% !important;
         }
       `}</style>
     </header>

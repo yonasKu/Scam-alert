@@ -1,0 +1,36 @@
+{
+  "title": "የማጭበርበር ክትትል የንግድ ድርጅቶች ዳታቤዝ",
+  "description": "ዋጋ ማወጣጫ ክስተቶች የተዘገቡባቸውን ንግድ ድርጅቶች ዝርዝር መረጃ ያግኙ",
+  "businessesReported": "{count} ንግድ ድርጅቶች ተዘግበዋል",
+  "reportBusiness": "ንግድ ድርጅት ሪፖርት አድርግ",
+  "searchPlaceholder": "በንግድ ድርጅት ስም፣ አድራሻ፣ ወይም የማጭበርበር አይነት ይፈልጉ...",
+  "filterByReportType": "በሪፖርት አይነት አጣራ",
+  "scamScoreExplanation": "የማጭበርበር ውጤት ማብራሪያ",
+  "riskLevels": {
+    "lowRisk": "1-3.9: ዝቅተኛ ስጋት",
+    "moderateRisk": "4-6.9: መካከለኛ ስጋት",
+    "highRisk": "7-10: ከፍተኛ ስጋት"
+  },
+  "tableHeaders": {
+    "businessName": "የንግድ ድርጅት ስም",
+    "category": "ምድብ",
+    "location": "አድራሻ",
+    "scamScore": "የማጭበርበር ውጤት",
+    "reports": "ሪፖርቶች",
+    "lastReported": "የመጨረሻ ሪፖርት የተደረገው",
+    "mostCommonScams": "በጣም የተለመዱ ማጭበርበሮች",
+    "actions": "ድርጊቶች"
+  },
+  "reportTypes": {
+    "all": "ሁሉም ሪፖርቶች",
+    "price_gouging": "ዋጋ ማወጣጫ",
+    "no_receipt": "ደረሰኝ አለመስጠት",
+    "suspicious_activity": "ጥርጣሬ የሚፈጥር እንቅስቃሴ",
+    "unauthorized_business": "ያልተፈቀደ ንግድ",
+    "false_advertising": "ሐሰተኛ ማስታወቂያ",
+    "hidden_fees": "የተደበቁ ክፍያዎች",
+    "other": "ሌሎች ጉዳዮች"
+  },
+  "noBusinessesFound": "ከፍለጋዎ መስፈርት ጋር የሚዛመዱ ንግድ ድርጅቶች አልተገኙም",
+  "viewDetails": "ዝርዝሮችን ይመልከቱ"
+}

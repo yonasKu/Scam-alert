@@ -1,31 +1,77 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { ImageWithFallback } from "@/components/ui/image-fallback";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 
 export default function BusinessesPage() {
+  const params = useParams();
+  const locale = params.locale as string;
+  const [translations, setTranslations] = useState<Record<string, any>>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState("scamScore");
   const [sortDirection, setSortDirection] = useState("desc");
   const [selectedReportType, setSelectedReportType] = useState("all");
+  
+  // Load translations
+  useEffect(() => {
+    const loadTranslations = async () => {
+      try {
+        // Try to load the translations for the current locale
+        const translationsModule = await import(`../../../../messages/businesses/businesses.${locale}.json`);
+        setTranslations(translationsModule.default);
+      } catch (error) {
+        // Fallback to English if the requested locale is not available
+        console.error(`Failed to load translations for locale ${locale}, falling back to English`, error);
+        const fallbackModule = await import(`../../../../messages/businesses/businesses.en.json`);
+        setTranslations(fallbackModule.default);
+      }
+    };
+    
+    loadTranslations();
+  }, [locale]);
+  
+  // Translation helper function
+  const t = (key: string, params?: Record<string, string | number>): string => {
+    if (!translations) return key; // Return the key if translations are not loaded yet
+    
+    const keys = key.split('.');
+    let value: any = translations;
+    
+    for (const k of keys) {
+      if (value && typeof value === 'object' && k in value) {
+        value = value[k];
+      } else {
+        return key; // Return the key if translation is not found
+      }
+    }
+    
+    if (typeof value === 'string' && params) {
+      // Replace parameters in the translation string
+      return Object.entries(params).reduce((str, [param, val]) => {
+        return str.replace(`{${param}}`, String(val));
+      }, value);
+    }
+    
+    return typeof value === 'string' ? value : key;
+  };
 
   // Report type filter options
   const reportTypes = [
-    { id: "all", label: "All Reports" },
-    { id: "price_gouging", label: "Price Gouging" },
-    { id: "no_receipt", label: "No Receipt" },
-    { id: "suspicious_activity", label: "Suspicious Activity" },
-    { id: "unauthorized_business", label: "Unauthorized Business" },
-    { id: "false_advertising", label: "False Advertising" },
-    { id: "hidden_fees", label: "Hidden Fees" },
-    { id: "other", label: "Other Issues" }
+    { id: "all", label: t("reportTypes.all") },
+    { id: "price_gouging", label: t("reportTypes.price_gouging") },
+    { id: "no_receipt", label: t("reportTypes.no_receipt") },
+    { id: "suspicious_activity", label: t("reportTypes.suspicious_activity") },
+    { id: "unauthorized_business", label: t("reportTypes.unauthorized_business") },
+    { id: "false_advertising", label: t("reportTypes.false_advertising") },
+    { id: "hidden_fees", label: t("reportTypes.hidden_fees") },
+    { id: "other", label: t("reportTypes.other") }
   ];
 
   // Mock data for businesses with scam information
-  const businesses = [
+  const businessesData = [
     {
       id: 1,
       name: "SuperMart Grocery",
@@ -239,6 +285,9 @@ export default function BusinessesPage() {
     }
   ];
 
+  // Wrap the businesses array in useMemo to avoid dependencies issues
+  const businesses = useMemo(() => businessesData, [businessesData]);
+
   // Filter and sort businesses
   const filteredBusinesses = useMemo(() => {
     return businesses.filter(business => {
@@ -275,7 +324,7 @@ export default function BusinessesPage() {
   }, [businesses, searchTerm, sortField, sortDirection, selectedReportType]);
 
   // Handle column sorting
-  const handleSort = (field) => {
+  const handleSort = (field: string) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -285,12 +334,12 @@ export default function BusinessesPage() {
   };
 
   // Get sort indicator icon
-  const getSortIcon = (field) => {
+  const getSortIcon = (field: string) => {
     if (sortField !== field) return null;
     
     return sortDirection === 'asc' 
-      ? <span>↑</span> 
-      : <span>↓</span>;
+      ? <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+      : <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>;
   };
 
   return (
@@ -311,21 +360,22 @@ export default function BusinessesPage() {
           textAlign: "center",
           padding: "2rem",
           borderRadius: "0.75rem",
-          backgroundColor: "hsla(var(--primary) / 0.05)",
+          backgroundColor: "hsla(var(--background) / 0.8)",
+          borderBottom: "1px solid hsla(var(--border) / 0.2)",
           marginBottom: "2rem"
         }}>
           <h1 style={{
-            fontSize: "clamp(1.75rem, 3vw, 2.5rem)",
+            fontSize: "clamp(2rem, 4vw, 3rem)",
             fontWeight: "bold",
             marginBottom: "1rem",
             fontFamily: "var(--font-heading)",
-            background: "linear-gradient(to right, hsl(var(--primary)), hsl(var(--foreground)))",
+            background: "linear-gradient(to right, hsl(var(--destructive)), hsl(var(--foreground)))",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
-            color: "hsl(var(--foreground))" // Fallback for browsers that don't support background-clip
+            color: "transparent" // Using color instead of textFillColor for TypeScript compatibility
           }}>
-            Scam Watch Business Database
+            {t("title")}
           </h1>
           <p style={{ 
             fontSize: "1.125rem",
@@ -334,7 +384,7 @@ export default function BusinessesPage() {
             margin: "0 auto",
             lineHeight: 1.6
           }}>
-            Find detailed information about businesses with reported price gouging incidents
+            {t("description")}
           </p>
         </div>
       </div>
@@ -374,7 +424,7 @@ export default function BusinessesPage() {
                 </svg>
               </div>
               <span style={{ fontSize: "1.125rem", fontWeight: "500" }}>
-                {businesses.length} Businesses Reported
+                {t("businessesReported", { count: businesses.length })}
               </span>
             </div>
             
@@ -382,7 +432,7 @@ export default function BusinessesPage() {
               height: "2.75rem",
               padding: "0 1.25rem"
             }}>
-              <Link href="/reports/new">Report a Business</Link>
+              <Link href="/reports/new">{t("reportBusiness")}</Link>
             </Button>
           </div>
 
@@ -407,7 +457,7 @@ export default function BusinessesPage() {
             </div>
             <input
               type="text"
-              placeholder="Search by business name, location, or scam type..."
+              placeholder={t("searchPlaceholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{
@@ -448,7 +498,7 @@ export default function BusinessesPage() {
               fontWeight: "500",
               fontSize: "0.875rem"
             }}>
-              Filter by Report Type
+              {t("filterByReportType")}
             </label>
             <div style={{
               display: "flex",
@@ -504,7 +554,7 @@ export default function BusinessesPage() {
                 <path d="M12 16v-4"/>
                 <path d="M12 8h.01"/>
               </svg>
-              Scam Score Explanation
+              {t("scamScoreExplanation")}
             </h3>
             <div style={{
               display: "flex",
@@ -522,7 +572,7 @@ export default function BusinessesPage() {
                   borderRadius: "50%",
                   backgroundColor: "hsl(var(--success))"
                 }}></div>
-                <span style={{ fontSize: "0.875rem" }}>1-3.9: Low Risk</span>
+                <span style={{ fontSize: "0.875rem" }}>{t("riskLevels.lowRisk")}</span>
               </div>
               <div style={{
                 display: "flex",
@@ -535,7 +585,7 @@ export default function BusinessesPage() {
                   borderRadius: "50%",
                   backgroundColor: "hsl(var(--warning))"
                 }}></div>
-                <span style={{ fontSize: "0.875rem" }}>4-6.9: Moderate Risk</span>
+                <span style={{ fontSize: "0.875rem" }}>{t("riskLevels.moderateRisk")}</span>
               </div>
               <div style={{
                 display: "flex",
@@ -548,7 +598,7 @@ export default function BusinessesPage() {
                   borderRadius: "50%",
                   backgroundColor: "hsl(var(--destructive))"
                 }}></div>
-                <span style={{ fontSize: "0.875rem" }}>7-10: High Risk</span>
+                <span style={{ fontSize: "0.875rem" }}>{t("riskLevels.highRisk")}</span>
               </div>
             </div>
           </div>
@@ -577,7 +627,7 @@ export default function BusinessesPage() {
                     whiteSpace: "nowrap",
                     cursor: "pointer"
                   }} onClick={() => handleSort('name')}>
-                    Business Name {getSortIcon('name')}
+                    {t("tableHeaders.businessName")} {getSortIcon('name')}
                   </th>
                   <th style={{
                     padding: "1rem",
@@ -586,7 +636,7 @@ export default function BusinessesPage() {
                     whiteSpace: "nowrap",
                     cursor: "pointer"
                   }} onClick={() => handleSort('category')}>
-                    Category {getSortIcon('category')}
+                    {t("tableHeaders.category")} {getSortIcon('category')}
                   </th>
                   <th style={{
                     padding: "1rem",
@@ -595,7 +645,7 @@ export default function BusinessesPage() {
                     whiteSpace: "nowrap",
                     cursor: "pointer"
                   }} onClick={() => handleSort('location')}>
-                    Location {getSortIcon('location')}
+                    {t("tableHeaders.location")} {getSortIcon('location')}
                   </th>
                   <th style={{
                     padding: "1rem",
@@ -604,7 +654,7 @@ export default function BusinessesPage() {
                     whiteSpace: "nowrap",
                     cursor: "pointer"
                   }} onClick={() => handleSort('scamScore')}>
-                    Scam Score {getSortIcon('scamScore')}
+                    {t("tableHeaders.scamScore")} {getSortIcon('scamScore')}
                   </th>
                   <th style={{
                     padding: "1rem",
@@ -613,7 +663,7 @@ export default function BusinessesPage() {
                     whiteSpace: "nowrap",
                     cursor: "pointer"
                   }} onClick={() => handleSort('reportCount')}>
-                    Reports {getSortIcon('reportCount')}
+                    {t("tableHeaders.reports")} {getSortIcon('reportCount')}
                   </th>
                   <th style={{
                     padding: "1rem",
@@ -622,7 +672,7 @@ export default function BusinessesPage() {
                     whiteSpace: "nowrap",
                     cursor: "pointer"
                   }} onClick={() => handleSort('lastReported')}>
-                    Last Reported {getSortIcon('lastReported')}
+                    {t("tableHeaders.lastReported")} {getSortIcon('lastReported')}
                   </th>
                   <th style={{
                     padding: "1rem",
@@ -630,7 +680,7 @@ export default function BusinessesPage() {
                     fontWeight: "600",
                     whiteSpace: "nowrap"
                   }}>
-                    Most Common Scams
+                    {t("tableHeaders.mostCommonScams")}
                   </th>
                   <th style={{
                     padding: "1rem",
@@ -638,7 +688,7 @@ export default function BusinessesPage() {
                     fontWeight: "600",
                     whiteSpace: "nowrap"
                   }}>
-                    Actions
+                    {t("tableHeaders.actions")}
                   </th>
                 </tr>
               </thead>
@@ -673,7 +723,7 @@ export default function BusinessesPage() {
                             borderRadius: "0.25rem",
                             overflow: "hidden"
                           }}>
-                            <Image 
+                            <ImageWithFallback 
                               src={business.imageUrl}
                               alt={business.name}
                               fill
@@ -777,79 +827,92 @@ export default function BusinessesPage() {
                           {business.reportTypes.map((report, i) => {
                             // Look up label from reportTypes array
                             const reportTypeLabel = reportTypes.find(rt => rt.id === report.type)?.label || report.type;
+                            let iconColor = "hsl(var(--foreground))";
+                            let Icon: React.FC = () => null;
                             
-                            // Choose appropriate icon and color based on report type
-                            let iconColor = "";
-                            let Icon = null;
-                            
-                            switch(report.type) {
+                            switch (report.type) {
                               case "price_gouging":
                                 iconColor = "hsl(var(--destructive))";
-                                Icon = () => (
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
-                                    <path d="M3 6h18"/>
-                                    <path d="M16 10a4 4 0 0 1-8 0"/>
-                                  </svg>
-                                );
+                                Icon = function PriceGougingIcon() {
+                                  return (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                                      <path d="M3 6h18"/>
+                                      <path d="m9 16 4 4 4-4"/>
+                                      <path d="M20 12h-8"/>
+                                    </svg>
+                                  );
+                                };
                                 break;
                               case "no_receipt":
-                                iconColor = "hsl(var(--destructive))";
-                                Icon = () => (
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <rect width="18" height="18" x="3" y="3" rx="2" />
-                                    <line x1="9" x2="15" y1="9" y2="9" />
-                                    <line x1="9" x2="15" y1="15" y2="15" />
-                                  </svg>
-                                );
+                                iconColor = "hsl(var(--warning))";
+                                Icon = function NoReceiptIcon() {
+                                  return (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <rect width="18" height="18" x="3" y="3" rx="2" />
+                                      <line x1="9" x2="15" y1="9" y2="9" />
+                                      <line x1="9" x2="15" y1="15" y2="15" />
+                                    </svg>
+                                  );
+                                };
                                 break;
                               case "suspicious_activity":
-                                iconColor = "hsl(var(--warning))";
-                                Icon = () => (
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                  </svg>
-                                );
+                                iconColor = "hsl(var(--amber))";
+                                Icon = function SuspiciousActivityIcon() {
+                                  return (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                    </svg>
+                                  );
+                                };
                                 break;
                               case "unauthorized_business":
-                                iconColor = "hsl(var(--primary))";
-                                Icon = () => (
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                                    <circle cx="12" cy="12" r="3"/>
-                                  </svg>
-                                );
+                                iconColor = "hsl(var(--muted))";
+                                Icon = function UnauthorizedBusinessIcon() {
+                                  return (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                      <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                  );
+                                };
                                 break;
                               case "false_advertising":
                                 iconColor = "hsl(var(--warning))";
-                                Icon = () => (
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="m3 8 4-4 4 4"/>
-                                    <path d="M11 12H3"/>
-                                    <path d="m9 16 4 4 4-4"/>
-                                    <path d="M20 12h-8"/>
-                                  </svg>
-                                );
+                                Icon = function FalseAdvertisingIcon() {
+                                  return (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="m3 8 4-4 4 4"/>
+                                      <path d="M11 12H3"/>
+                                      <path d="m9 16 4 4 4-4"/>
+                                      <path d="M20 12h-8"/>
+                                    </svg>
+                                  );
+                                };
                                 break;
                               case "hidden_fees":
                                 iconColor = "hsl(var(--destructive))";
-                                Icon = () => (
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <path d="M12 8v4"/>
-                                    <path d="M12 16h.01"/>
-                                  </svg>
-                                );
+                                Icon = function HiddenFeesIcon() {
+                                  return (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <circle cx="12" cy="12" r="10"/>
+                                      <path d="M12 8v4"/>
+                                      <path d="M12 16h.01"/>
+                                    </svg>
+                                  );
+                                };
                                 break;
                               default:
                                 iconColor = "hsl(var(--muted-foreground))";
-                                Icon = () => (
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                                    <path d="M12 17h.01"/>
-                                  </svg>
-                                );
+                                Icon = function DefaultIcon() {
+                                  return (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <circle cx="12" cy="12" r="10"/>
+                                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                                      <path d="M12 17h.01"/>
+                                    </svg>
+                                  );
+                                };
                             }
                             
                             return (
@@ -860,7 +923,7 @@ export default function BusinessesPage() {
                                 fontSize: "0.875rem"
                               }}>
                                 <span style={{ color: iconColor }}>
-                                  {Icon && <Icon />}
+                                  <Icon />
                                 </span>
                                 <span>{reportTypeLabel} ({report.count})</span>
                               </div>
@@ -870,7 +933,7 @@ export default function BusinessesPage() {
                       </td>
                       <td style={{ padding: "1rem", textAlign: "center" }}>
                         <Button variant="outline" size="sm" asChild>
-                          <Link href={`/businesses/${business.id}`}>View Details</Link>
+                          <Link href={`/businesses/${business.id}`}>{t("viewDetails")}</Link>
                         </Button>
                       </td>
                     </tr>
@@ -884,7 +947,7 @@ export default function BusinessesPage() {
                       textAlign: "center",
                       color: "hsl(var(--muted-foreground))"
                     }}>
-                      No businesses found matching your search criteria
+                      {t("noBusinessesFound")}
                     </td>
                   </tr>
                 )}

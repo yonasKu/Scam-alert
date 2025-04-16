@@ -1,24 +1,31 @@
 "use client";
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 export function Footer() {
+  const t = useTranslations('Footer');
   const year = new Date().getFullYear();
+  const pathname = usePathname();
+  
+  // Extract locale from path
+  const locale = pathname.split('/')[1] || 'en';
 
   const footerLinks = [
     {
-      title: "Navigation", links: [
-        { label: "Home", href: "/" },
-        { label: "Reports", href: "/reports" },
-        { label: "Businesses", href: "/businesses" },
-        { label: "Watchlist", href: "/watchlist" },
+      title: t('navSection'), links: [
+        { label: t('home'), href: `/${locale}` },
+        { label: t('reports'), href: `/${locale}/reports` },
+        { label: t('businesses'), href: `/${locale}/businesses` },
+        { label: t('watchlist'), href: `/${locale}/watchlist` },
       ]
     },
     {
-      title: "Reporting", links: [
-        { label: "Report an Issue", href: "/reports/new" },
-        { label: "Recent Reports", href: "/reports" },
-        { label: "Suspicious Businesses", href: "/watchlist" },
+      title: t('reportingSection'), links: [
+        { label: t('reportIssue'), href: `/${locale}/reports/new` },
+        { label: t('recentReports'), href: `/${locale}/reports` },
+        { label: t('suspiciousBusinesses'), href: `/${locale}/watchlist` },
       ]
     }
   ];
@@ -64,12 +71,12 @@ export function Footer() {
                 color: 'hsl(var(--primary-foreground))',
                 fontWeight: 'bold',
                 fontSize: '1.25rem'
-              }}>SW</div>
+              }}>{t('brandInitials')}</div>
               <span style={{
                 fontSize: '1.25rem',
                 fontWeight: 'bold',
                 color: 'hsl(var(--foreground))',
-              }}>Scam Watch</span>
+              }}>{t('brandName')}</span>
             </div>
             <p style={{
               fontSize: '0.875rem',
@@ -77,7 +84,7 @@ export function Footer() {
               maxWidth: '300px',
               lineHeight: '1.5'
             }}>
-              A community platform for reporting price gouging and protecting consumers from unfair practices.
+              {t('description')}
             </p>
 
             {/* Social Links */}
@@ -162,14 +169,14 @@ export function Footer() {
               fontWeight: 'bold',
               marginBottom: '1rem',
               color: 'hsl(var(--foreground))'
-            }}>Consumer Protection</h3>
+            }}>{t('consumerProtection')}</h3>
             <p style={{
               fontSize: '0.875rem',
               color: 'hsl(var(--muted-foreground))',
               marginBottom: '1rem',
               lineHeight: '1.5'
             }}>
-              ScamWatch helps consumers report and track unfair business practices like price gouging, receipt issues, and suspicious activities.
+              {t('consumerProtectionText')}
             </p>
 
           </div>
@@ -188,32 +195,32 @@ export function Footer() {
             fontSize: '0.75rem',
             color: 'hsl(var(--muted-foreground))'
           }}>
-            &copy; {year} Scam Watch. All rights reserved.
+            {t('copyright', { year: year })}
           </p>
           <div style={{
             display: 'flex',
             gap: '1.5rem'
           }}>
-            <Link href="/privacy" style={{
+            <Link href={`/${locale}/privacy`} style={{
               fontSize: '0.75rem',
               color: 'hsl(var(--muted-foreground))',
               textDecoration: 'none'
             }}>
-              Privacy
+              {t('privacy')}
             </Link>
-            <Link href="/terms" style={{
+            <Link href={`/${locale}/terms`} style={{
               fontSize: '0.75rem',
               color: 'hsl(var(--muted-foreground))',
               textDecoration: 'none'
             }}>
-              Terms
+              {t('terms')}
             </Link>
-            <Link href="/cookies" style={{
+            <Link href={`/${locale}/cookies`} style={{
               fontSize: '0.75rem',
               color: 'hsl(var(--muted-foreground))',
               textDecoration: 'none'
             }}>
-              Cookies
+              {t('cookies')}
             </Link>
           </div>
         </div>

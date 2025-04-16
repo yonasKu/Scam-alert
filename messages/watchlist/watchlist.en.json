@@ -1,0 +1,39 @@
+{
+  "title": "Consumer Watchlist",
+  "description": "Monitor businesses with suspicious activities, missing receipts, counterfeit products, and other consumer protection concerns",
+  "search": {
+    "label": "Search Businesses",
+    "placeholder": "Search by name, category, location, or issue details..."
+  },
+  "filter": {
+    "label": "Filter by Issue Type"
+  },
+  "issueTypes": {
+    "all": "All Issues",
+    "suspicious_charges": "Suspicious Charges",
+    "counterfeit": "Counterfeit Products",
+    "no_receipt": "No Receipts",
+    "misrepresentation": "Misrepresentation",
+    "unauthorized_repairs": "Unauthorized Repairs"
+  },
+  "resultsCount": "Showing {count} businesses on watchlist",
+  "alertLevels": {
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  },
+  "businessDetails": {
+    "reportedIssues": "Reported Issues",
+    "details": "Details",
+    "reports": "reports",
+    "lastReported": "Last reported: {date}"
+  },
+  "actions": {
+    "viewBusiness": "View Business",
+    "reportBusiness": "Report a Business"
+  },
+  "noResults": {
+    "title": "No businesses found",
+    "description": "No businesses match your current search filters."
+  }
+}

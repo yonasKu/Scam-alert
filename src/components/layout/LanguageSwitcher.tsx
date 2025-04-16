@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
@@ -8,7 +8,7 @@ import { locales } from '@/i18n';
 import { useTranslations } from 'next-intl';
 
 export function LanguageSwitcher() {
-  const t = useTranslations('language');
+  const t = useTranslations('LanguageSwitcher');
   const locale = useLocale();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();

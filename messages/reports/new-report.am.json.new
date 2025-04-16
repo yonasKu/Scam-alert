@@ -1,0 +1,115 @@
+{
+  "title": "የዋጋ ጭማሪ ወይም የሸማቾች ጉዳይ ሪፖርት",
+  "subtitle": "የዋጋ ጭማሪ፣ የደረሰኝ አስቸጋሪነት፣ ጥርጣሬ የሚፈጥሩ እንቅስቃሴዎች ወይም ሌሎች የፍትሃዊ አይደሉ የንግድ ልምዶችን ይመዘግቡ",
+  "form": {
+    "fields": {
+      "title": {
+        "label": "የሪፖርቱ ርዕስ *",
+        "placeholder": "የችግሩን አጭር መግለጫ ያስገቡ"
+      },
+      "businessName": {
+        "label": "የንግድ ስም *",
+        "placeholder": "የመደብሩን ወይም የንግዱን ስም ያስገቡ"
+      },
+      "location": {
+        "label": "አድራሻ *",
+        "placeholder": "የንግዱን አድራሻ ወይም ቦታ ያስገቡ"
+      },
+      "category": {
+        "label": "ምድብ *",
+        "options": {
+          "default": "ምድብ ይምረጡ",
+          "groceries": "የምግብ ዕቃዎች",
+          "fuel": "ነዳጅ",
+          "essentials": "ያስፈልጋሉ",
+          "electronics": "ኤሌክትሮኒክስ",
+          "restaurants": "ምግብ ቤቶች",
+          "accommodation": "መኖሪያ",
+          "noReceipt": "ደረሰኝ አልተሰጠም",
+          "other": "ሌላ"
+        }
+      },
+      "reportType": {
+        "label": "ምን ነገር ታውራለህ? *"
+      },
+      "item": {
+        "label": "የእቃ ስም *",
+        "placeholder": "የእቃው ወይም አገልግሎቱ ስም"
+      },
+      "description": {
+        "label": "ዝርዝር መግለጫ *",
+        "placeholder": "የተከሰተውን ነገር፣ የችግሩ አቃራብ በመገለጭ ይገልጹ"
+      },
+      "photo": {
+        "label": "የደረሰኝ ወይም የዋጋ መለያ ፎቶ (አማራጭ)",
+        "uploadText": "መዙውን ለመዘናገት ይጥ቉ ወይም እዝወሳስኔ ያሰቁጡ",
+        "fileFormats": "PNG፣ JPG፣ ወይም WEBP ወደ 5MB የሚደርሱ"
+      },
+      "contact": {
+        "label": "የእርስዎ የመገናኛ መረጃ (አማራጭ)",
+        "placeholder": "ኢሜይል ወይም ስልክ ቂጥር",
+        "privacyNote": "ይህ በህለነ አይታየቅም። ለማረጋገጥ ብቻ ይጠቀማል።"
+      }
+    },
+    "reportDetails": {
+      "title": "የሪፖርቱ ዝርዝሮች",
+      "description": "የፍትሃዊ አይደሉ የንግድ ልምዶችን በማሳወቅ ማህበረሰብዎን ይጠብቁ። * የተሰጡትን መስኮቶች ሁሉ ያስገቡ።"
+    },
+    "reportTypes": {
+      "priceGouging": {
+        "title": "የዋጋ ጭማሪ",
+        "description": "በተለይ በአደጋ ጊዜ ያለ ምክንያት የተጨመረ ዋጋ ያሳውቁ"
+      },
+      "noReceipt": {
+        "title": "ደረሰኝ አልተሰጠም",
+        "description": "ደረሰኝ የማይሰጡ ንግዶችን ያሳውቁ"
+      },
+      "suspiciousActivity": {
+        "title": "ጥርጣሬ የሚፈጥር እንቅስቃሴ",
+        "description": "የካርድ ስሪቅ፣ የተየዛዙዟ እቃዎች፣ ወይም ሌሎች ጥርጣሬ የሚፈጥሩ እንቅስቃሴዎችን ያሳውቁ"
+      },
+      "unauthorizedBusiness": {
+        "title": "ያልተፈቀደ ንግድ",
+        "description": "በሕጋዊ መንገድ የሚያገለግሉ ወይም የሕጥ ተፈጻሚዎችን ያሉባቸውን ንግዶች ያሳውቁ"
+      },
+      "falseAdvertising": {
+        "title": "ሐሰተኛ ማስታወቂያ",
+        "description": "አሰጣች የሆኑ ማስታወቂያዎችን ወይም የእቃ አለሚዎችን ያሳውቁ"
+      },
+      "hiddenFees": {
+        "title": "የተደበቁ ክፍያዎች",
+        "description": "ያልተገለጉ ክፍያዎችን ወይም ያልተጠበቁ እንዲፈታዎችን ያሳውቁ"
+      },
+      "other": {
+        "title": "ሌላ የሸማቾች ጉዳይ",
+        "description": "ከላይ የተዘረዘሩ ሌሎች የፍትሃዊ ያልሆኑ የንግድ ልምዶችን ያሳውቁ"
+      }
+    }
+  },
+  "categories": {
+    "groceries": "የምግብ ዕቃዎች",
+    "fuel": "ነዳጅ/ጋዝ",
+    "pharmacy": "ፋርማሲ",
+    "restaurant": "ምግብ ቤት",
+    "retail": "የችርቻሮ መደብር",
+    "hotel": "ሆቴል/መኖሪያ",
+    "transportation": "ትራንስፖርት",
+    "utilities": "አገልግሎቶች",
+    "other": "ሌላ"
+  },
+  "reportTypes": {
+    "priceGouging": "የዋጋ ጭማሪ",
+    "noReceipt": "ደረሰኝ አልተሰጠም",
+    "falseAdvertising": "ሐሰተኛ ማስታወቂያ",
+    "hiddenFees": "የተደበቁ ክፍያዎች",
+    "suspiciousActivity": "ጥርጣሬ የሚፈጥር እንቅስቃሴ",
+    "unauthorizedBusiness": "ያልተፈቀደ ንግድ",
+    "other": "ሌላ የሸማቾች ጉዳይ"
+  },
+  "successMessage": "ለሪፖርትዎ እናመሰግናለን! የእርስዎ አስተዋጽኦ ማህበረሰቡን ለመጠበቅ ይረዳል።",
+  "errorMessage": "ሪፖርትዎን በማስገባት ላይ ስህተት ተከስቷል። እባክዎ እንደገና ይሞክሩ።",
+  "buttons": {
+    "cancel": "ይቅር",
+    "submit": "ሪፖርት አስገባ"
+  }
+}

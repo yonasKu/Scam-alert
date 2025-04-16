@@ -2,8 +2,21 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from 'next-intl';
+
+import { usePathname } from 'next/navigation';
 
 export default function HeroSection() {
+  const t = useTranslations('HeroSection');
+  const pathname = usePathname();
+  
+  // Extract locale from path
+  const locale = pathname.split('/')[1] || 'en';
+
+  // Placeholder counts - these could come from props or state later
+  const reportsCount = 243;
+  const communitiesCount = 37;
+
   return (
     <section style={{
       width: "100%",
@@ -66,14 +79,18 @@ export default function HeroSection() {
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text"
-                }}>Report Price Gouging</span>
+                }}>
+                  {t('titlePart1')}
+                </span>
                 <br />
                 <span style={{
                   background: "linear-gradient(to right, hsla(var(--primary)), hsla(var(--foreground)))",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text"
-                }}>Help protect your community</span>
+                }}>
+                  {t('titlePart2')}
+                </span>
               </h1>
 
               <div style={{
@@ -84,7 +101,7 @@ export default function HeroSection() {
                 textAlign: "center",
                 color: "hsla(var(--foreground) / 0.9)"
               }}>
-                Help protect your community from unfair pricing practices
+                {t('subtitle')}
               </div>
             </div>
             <div style={{
@@ -104,7 +121,7 @@ export default function HeroSection() {
                 color: '#FFFFFF',
                 boxShadow: "0 4px 14px rgba(0, 0, 0, 0.1)"
               }}>
-                <Link href="/reports/new">Report Now</Link>
+                <Link href={`/${locale}/reports/new`}>{t('reportButton')}</Link>
               </Button>
               <Button variant="outline" size="lg" asChild style={{
                 fontSize: "1.1rem",
@@ -116,7 +133,7 @@ export default function HeroSection() {
                 color: "hsl(var(--primary))",
                 fontWeight: "500"
               }}>
-                <Link href="/reports">View All Reports</Link>
+                <Link href={`/${locale}/reports`}>{t('viewReportsButton')}</Link>
               </Button>
               <Button variant="outline" size="lg" asChild style={{
                 fontSize: "1.1rem",
@@ -129,7 +146,7 @@ export default function HeroSection() {
                 color: "hsl(var(--warning))",
                 fontWeight: "500"
               }}>
-                <Link href="/watchlist">View Watchlist</Link>
+                <Link href={`/${locale}/watchlist`}>{t('viewWatchlistButton')}</Link>
               </Button>
             </div>
 
@@ -160,7 +177,7 @@ export default function HeroSection() {
                     <path d="M2 12l10 5 10-5" />
                   </svg>
                 </div>
-                <span style={{ fontSize: "1.1rem" }}>243 Reports Filed</span>
+                <span style={{ fontSize: "1.1rem" }}>{t('reportsFiledStat', { count: reportsCount })}</span>
               </div>
 
               <div style={{
@@ -183,7 +200,7 @@ export default function HeroSection() {
                     <circle cx="12" cy="10" r="3" />
                   </svg>
                 </div>
-                <span style={{ fontSize: "1.1rem" }}>37 Communities Protected</span>
+                <span style={{ fontSize: "1.1rem" }}>{t('communitiesProtectedStat', { count: communitiesCount })}</span>
               </div>
             </div>
           </div>

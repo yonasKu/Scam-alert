@@ -32,7 +32,16 @@ type MapSectionProps = {
   businesses: Business[];
 };
 
+import { useTranslations } from 'next-intl';
+
+import { usePathname } from 'next/navigation';
+
 export default function MapSection({ businesses }: MapSectionProps) {
+  const t = useTranslations('MapSection');
+  const pathname = usePathname();
+  
+  // Extract locale from path
+  const locale = pathname.split('/')[1] || 'en';
   return (
     <div>
       {/* Section Title */}
@@ -49,7 +58,7 @@ export default function MapSection({ businesses }: MapSectionProps) {
           fontFamily: "var(--font-heading)",
           textAlign: "center"
         }}>
-          Price Gouging Map
+          {t('sectionTitle')}
         </h2>
         <div style={{
           maxWidth: "700px",
@@ -58,7 +67,7 @@ export default function MapSection({ businesses }: MapSectionProps) {
           textAlign: "center",
           marginBottom: "1rem"
         }}>
-          Reported businesses with unfair pricing practices in your area
+          {t('sectionDescription')}
         </div>
       </div>
 
@@ -81,7 +90,7 @@ export default function MapSection({ businesses }: MapSectionProps) {
         marginTop: "1rem"
       }}>
         <Button asChild>
-          <Link href="/reports">View All Reports on Map</Link>
+          <Link href={`/${locale}/reports`}>{t('viewMap')}</Link>
         </Button>
       </div>
     </div>

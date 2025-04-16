@@ -1,16 +1,14 @@
 "use client";
 
-import { useTranslations } from 'next-intl';
 import HeroSection from "@/components/home/HeroSection";
 import ReportsList from "@/components/home/ReportsList";
 import MapSection from "@/components/home/MapSection";
 import ReceiptTransparencySection from "@/components/home/ReceiptTransparencySection";
 import WatchlistSection from "@/components/home/WatchlistSection";
 import HowItWorks from "@/components/home/HowItWorks";
+import { ImageWithFallback } from "@/components/ui/image-fallback";
 
 export default function Home() {
-  const t = useTranslations();
-  
   // Mock data for recent reports with more detailed information
   const recentReports = [
     {

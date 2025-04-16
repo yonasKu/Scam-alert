@@ -1,0 +1,39 @@
+{
+  "title": "የሸማቾች ክትትል ዝርዝር",
+  "description": "ጥርጣሬ የሚፈጥሩ እንቅስቃሴዎች፣ ደረሰኞች የማይሰጡ፣ የተቀለበሱ ምርቶች እና ሌሎች የሸማቾች ጥበቃ ስጋቶች ያሉባቸውን ንግድ ድርጅቶች ይቆጣጠሩ",
+  "search": {
+    "label": "ንግድ ድርጅቶችን ይፈልጉ",
+    "placeholder": "በስም፣ በምድብ፣ በአድራሻ፣ ወይም በችግር ዝርዝር ይፈልጉ..."
+  },
+  "filter": {
+    "label": "በችግር አይነት አጣራ"
+  },
+  "issueTypes": {
+    "all": "ሁሉም ችግሮች",
+    "suspicious_charges": "ጥርጣሬ የሚፈጥሩ ክፍያዎች",
+    "counterfeit": "የተቀለበሱ ምርቶች",
+    "no_receipt": "ደረሰኞች አለመስጠት",
+    "misrepresentation": "ሐሰተኛ ማቅረብ",
+    "unauthorized_repairs": "ያልተፈቀዱ ጥገናዎች"
+  },
+  "resultsCount": "በክትትል ዝርዝር ላይ {count} ንግድ ድርጅቶች እየታዩ ነው",
+  "alertLevels": {
+    "high": "ከፍተኛ",
+    "medium": "መካከለኛ",
+    "low": "ዝቅተኛ"
+  },
+  "businessDetails": {
+    "reportedIssues": "የተዘገቡ ችግሮች",
+    "details": "ዝርዝሮች",
+    "reports": "ሪፖርቶች",
+    "lastReported": "የመጨረሻ ሪፖርት የተደረገው: {date}"
+  },
+  "actions": {
+    "viewBusiness": "ንግድ ድርጅቱን ይመልከቱ",
+    "reportBusiness": "ንግድ ድርጅት ሪፖርት አድርግ"
+  },
+  "noResults": {
+    "title": "ምንም ንግድ ድርጅቶች አልተገኙም",
+    "description": "ከአሁኑ የፍለጋ ማጣሪያዎች ጋር የሚዛመዱ ንግድ ድርጅቶች የሉም።"
+  }
+}

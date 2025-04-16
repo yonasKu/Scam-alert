@@ -28,7 +28,8 @@
     "recentReports": {
       "title": "የቅርብ ጊዜ ሪፖርቶች",
       "viewAll": "ሁሉንም ሪፖርቶች ይመልከቱ",
-      "noReports": "እስካሁን ምንም ሪፖርቶች የሉም"
+      "noReports": "እስካሁን ምንም ሪፖርቶች የሉም",
+      "viewDetailsButton": "ዝርዝር አሳይ"
     },
     "map": {
       "title": "የዋጋ ግፊት ካርታ",
@@ -94,6 +95,21 @@
     "privacy": "የግላዊነት ፖሊሲ",
     "terms": "የአገልግሎት ውሎች",
     "contact": "ያግኙን"
+  },
+  "receiptTransparencySection": {
+    "sectionTitle": "የደረሰኝ ግልጽነት",
+    "sectionDescription": "ትክክለኛ ደረሰኝ የማይሰጡ ወይም ሌሎች የግልጽነት ጉዳዮች ያሉባቸውን ንግዶች ይከታተሉ",
+    "viewDetailsButton": "ዝርዝር አሳይ",
+    "viewAllButton": "ደረሰኝ የማይሰጡ ንግዶችን ሁሉ ይመልከቱ",
+    "modal": {
+      "receiptIssueRating": "የደረሰኝ ጉዳይ ደረጃ",
+      "totalReports": "ጠቅላላ ሪፖርቶች",
+      "aboutBusiness": "ስለዚህ ንግድ",
+      "aboutBusinessText": "ይህ ንግድ {count} ጊዜ ከደረሰኝ ጋር በተያያዙ ጉዳዮች ሪፖርት ተደርጓል። ዋነኛው የተሪፖርት የተደረገው ጉዳይ \"{issue}\" ነው። የቅርብ ጊዜ ሪፖርት የተደረገው በ{date} ነው።",
+      "whatThisMeans": "ይህ ምን ማለት ነው",
+      "whatThisMeansText": "የደረሰኝ ጉዳዮች ያሉባቸው ንግዶች ገቢያቸውን ከታክስ ባለስልጣናት ለመደበቅ ወይም ለሸማቾች ተገቢ የግዢ ማረጋገጫ ለማስተው ሊሞክሩ ይችላሉ። ሁልጊዜ ደረሰኝ ይጠይቁ እና ደረሰኝ እምቢ የሚሉትን ንግዶች ሪፖርት ያድርጉ።",
+      "closeButton": "ዝጋ"
+    }
   },
   "actions": {
     "save": "አስቀምጥ",
