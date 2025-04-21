@@ -10,6 +10,61 @@ const BusinessMap = dynamic(
   { ssr: false }
 );
 
+// Sample Ethiopian businesses
+const ethiopianBusinesses = [
+  {
+    id: 999001,
+    businessName: "Merkato Market",
+    title: "Sample Location",
+    description: "Largest open market in Africa",
+    location: "Addis Ababa, Ethiopia",
+    coordinates: {
+      lat: 9.0107,
+      lng: 38.7612
+    },
+    category: "Market",
+    price: {
+      before: "50 ETB",
+      after: "75 ETB"
+    },
+    item: "Basic groceries"
+  },
+  {
+    id: 999002,
+    businessName: "Bole Road Shop",
+    title: "Sample Location",
+    description: "Shopping area in Bole district",
+    location: "Bole, Addis Ababa",
+    coordinates: {
+      lat: 8.9806,
+      lng: 38.7578
+    },
+    category: "Retail",
+    price: {
+      before: "200 ETB",
+      after: "350 ETB"
+    },
+    item: "Electronics"
+  },
+  {
+    id: 999003,
+    businessName: "Piazza Store",
+    title: "Sample Location",
+    description: "Historic shopping district",
+    location: "Piazza, Addis Ababa",
+    coordinates: {
+      lat: 9.0340,
+      lng: 38.7502
+    },
+    category: "Clothing",
+    price: {
+      before: "300 ETB",
+      after: "450 ETB"
+    },
+    item: "Imported goods"
+  }
+];
+
 type Business = {
   id: number;
   businessName: string;
@@ -42,6 +97,10 @@ export default function MapSection({ businesses }: MapSectionProps) {
   
   // Extract locale from path
   const locale = pathname.split('/')[1] || 'en';
+  
+  // Combine the provided businesses with Ethiopian samples
+  const combinedBusinesses = [...businesses, ...ethiopianBusinesses];
+  
   return (
     <div>
       {/* Section Title */}
@@ -81,7 +140,10 @@ export default function MapSection({ businesses }: MapSectionProps) {
         marginBottom: "3rem",
         boxShadow: "0 4px 20px rgba(0,0,0,0.1)"
       }}>
-        <BusinessMap businesses={businesses} height="300px" />
+        <BusinessMap 
+          businesses={combinedBusinesses} 
+          height="300px"
+        />
       </div>
 
       <div style={{

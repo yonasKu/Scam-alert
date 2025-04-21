@@ -1,4 +1,5 @@
 import { supabase } from '../supabase';
+import { Report, ReportType } from './reports';
 
 // Type definitions
 export interface Business {
@@ -10,6 +11,20 @@ export interface Business {
   zip: string;
   report_count?: number;
   created_at?: string;
+  scam_score?: number;
+  isHighRisk?: boolean;
+  isRecent?: boolean;
+  isTrending?: boolean;
+}
+
+export interface CommonScam {
+  scam_description: string;
+  occurrence_count: number;
+}
+
+export interface ReportTypeCount {
+  report_type: string;
+  count: number;
 }
 
 // Fetch all businesses
@@ -100,4 +115,367 @@ export async function incrementBusinessReportCount(id: string) {
   
   if (error) throw error;
   return data;
+}
+
+// Calculate scam score for a business
+export async function calculateScamScore(businessId: string): Promise<number> {
+  // Fetch all reports for this business
+  const { data: business, error: businessError } = await supabase
+    .from('businesses')
+    .select('*')
+    .eq('id', businessId)
+    .single();
+  
+  if (businessError) throw businessError;
+  
+  // Fetch all reports for this business
+  const { data: reports, error: reportsError } = await supabase
+    .from('reports')
+    .select('*')
+    .eq('business_id', businessId)
+    .order('created_at', { ascending: false });
+  
+  if (reportsError) throw reportsError;
+  
+  if (!reports || reports.length === 0) {
+    return 0; // No reports, no scam score
+  }
+  
+  // 1. Report Count Factor (0-10)
+  const reportCount = reports.length;
+  const reportCountFactor = Math.min(reportCount / 2, 10); // Max out at 20 reports
+  
+  // 2. Recency Factor (0-10)
+  // Calculate how recent the reports are (weighted more for recent reports)
+  const now = new Date();
+  const recencyScores = reports.map(report => {
+    const reportDate = new Date(report.created_at || '');
+    const daysSinceReport = Math.floor((now.getTime() - reportDate.getTime()) / (1000 * 60 * 60 * 24));
+    // Reports in the last 30 days get higher scores
+    return Math.max(0, 10 - (daysSinceReport / 30) * 10);
+  });
+  const recencyFactor = recencyScores.reduce((sum, score) => sum + score, 0) / reports.length;
+  
+  // 3. Severity Factor (0-10)
+  // Different report types have different severity weights
+  const severityWeights: Record<ReportType, number> = {
+    'price_gouging': 7,
+    'no_receipt': 5,
+    'suspicious_activity': 8,
+    'unauthorized_charges': 9
+  };
+  
+  const severityScores = reports.map(report => 
+    severityWeights[report.report_type as ReportType] || 5 // Default to 5 if type not found
+  );
+  const severityFactor = severityScores.reduce((sum, score) => sum + score, 0) / reports.length;
+  
+  // Calculate final score (0-10 scale)
+  const scamScore = (reportCountFactor * 0.5) + (recencyFactor * 0.3) + (severityFactor * 0.2);
+  
+  // Round to one decimal place
+  return Math.round(scamScore * 10) / 10;
+}
+
+// Update scam score in the database
+export async function updateScamScore(businessId: string): Promise<Business> {
+  // Calculate the score
+  const scamScore = await calculateScamScore(businessId);
+  
+  // Update the business record
+  const { data, error } = await supabase
+    .from('businesses')
+    .update({ scam_score: scamScore })
+    .eq('id', businessId)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
+}
+
+// Update scam scores for all businesses
+export async function updateAllScamScores(): Promise<void> {
+  // Get all businesses
+  const { data: businesses, error } = await supabase
+    .from('businesses')
+    .select('id');
+  
+  if (error) throw error;
+  
+  // Update each business score
+  for (const business of businesses) {
+    await updateScamScore(business.id);
+  }
+}
+
+// Fetch businesses with scam scores
+export async function fetchBusinessesWithScores() {
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('*')
+    .order('scam_score', { ascending: false });
+  
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Fetches all businesses with their scam scores
+ * @param limit Maximum number of businesses to return
+ * @returns Array of businesses with scam scores
+ */
+export async function getAllBusinessesWithScores(limit = 20): Promise<Business[]> {
+  try {
+    const { data, error } = await supabase
+      .from('businesses')
+      .select('*')
+      .order('scam_score', { ascending: false })
+      .limit(limit);
+    
+    if (error) {
+      console.error('Error fetching businesses with scores:', error.message);
+      return [];
+    }
+    
+    return data || [];
+  } catch (err) {
+    console.error('Error in getAllBusinessesWithScores:', err);
+    return [];
+  }
+}
+
+/**
+ * Fetches businesses with scam scores in a specific range
+ * @param minScore Minimum scam score (inclusive)
+ * @param maxScore Maximum scam score (inclusive)
+ * @param limit Maximum number of businesses to return
+ * @returns Array of businesses with scam scores in the specified range
+ */
+export async function getBusinessesByScamScoreRange(
+  minScore: number, 
+  maxScore: number, 
+  limit = 20
+): Promise<Business[]> {
+  try {
+    const { data, error } = await supabase
+      .from('businesses')
+      .select('*')
+      .gte('scam_score', minScore)
+      .lte('scam_score', maxScore)
+      .order('scam_score', { ascending: false })
+      .limit(limit);
+    
+    if (error) {
+      console.error('Error fetching businesses by score range:', error.message);
+      return [];
+    }
+    
+    return data || [];
+  } catch (err) {
+    console.error('Error in getBusinessesByScamScoreRange:', err);
+    return [];
+  }
+}
+
+// Fetch most common scams for a specific business
+export async function fetchMostCommonScams(businessName: string, limit: number = 3): Promise<CommonScam[]> {
+  const { data, error } = await supabase
+    .rpc('get_most_common_scams', { 
+      business_name_param: businessName,
+      limit_count: limit 
+    });
+  
+  if (error) {
+    console.error('Error fetching common scams:', error.message);
+    throw error;
+  }
+  
+  return data || [];
+}
+
+// Fetch report types with counts for a specific business
+export async function fetchReportTypesByBusiness(businessName: string): Promise<ReportTypeCount[]> {
+  const { data, error } = await supabase
+    .from('reports')
+    .select('report_type')
+    .ilike('business_name', businessName);
+  
+  if (error) {
+    console.error('Error fetching report types:', error.message);
+    throw error;
+  }
+  
+  // Count occurrences of each report type
+  const typeCounts: Record<string, number> = {};
+  data.forEach(report => {
+    const type = report.report_type;
+    typeCounts[type] = (typeCounts[type] || 0) + 1;
+  });
+  
+  // Convert to array format
+  const result: ReportTypeCount[] = Object.entries(typeCounts).map(([type, count]) => ({
+    report_type: type,
+    count
+  }));
+  
+  // Sort by count (descending)
+  return result.sort((a, b) => b.count - a.count);
+}
+
+// Get businesses with highest scam scores
+export async function getHighRiskBusinesses(limit = 10) {
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('*')
+    .order('scam_score', { ascending: false })
+    .limit(limit);
+  
+  if (error) {
+    console.error('Error fetching high risk businesses:', error.message);
+    throw error;
+  }
+  
+  return data || [];
+}
+
+// Get recently reported businesses
+export async function getRecentlyReportedBusinesses(limit = 10) {
+  // First get recent reports
+  const { data: recentReports, error: reportsError } = await supabase
+    .from('reports')
+    .select('business_name, created_at')
+    .order('created_at', { ascending: false })
+    .limit(50); // Get more than we need to account for duplicates
+  
+  if (reportsError) {
+    console.error('Error fetching recent reports:', reportsError.message);
+    throw reportsError;
+  }
+  
+  if (!recentReports || recentReports.length === 0) {
+    return [];
+  }
+  
+  // Get unique business names from recent reports
+  const uniqueBusinessNames = Array.from(new Set(
+    recentReports.map(report => report.business_name)
+  )).slice(0, limit);
+  
+  if (uniqueBusinessNames.length === 0) {
+    return [];
+  }
+  
+  // Fetch business details for these names
+  const { data: businesses, error: businessesError } = await supabase
+    .from('businesses')
+    .select('*')
+    .in('name', uniqueBusinessNames);
+  
+  if (businessesError) {
+    console.error('Error fetching businesses by names:', businessesError.message);
+    throw businessesError;
+  }
+  
+  // Sort businesses by the order of uniqueBusinessNames
+  return (businesses || []).sort((a, b) => {
+    const indexA = uniqueBusinessNames.findIndex(name => 
+      name.toLowerCase() === a.name.toLowerCase()
+    );
+    const indexB = uniqueBusinessNames.findIndex(name => 
+      name.toLowerCase() === b.name.toLowerCase()
+    );
+    return indexA - indexB;
+  });
+}
+
+// Get businesses with rapidly increasing report counts
+export async function getTrendingBusinesses(limit = 10, timeframeDays = 7) {
+  try {
+    // First try to use the SQL function
+    const { data, error } = await supabase.rpc('get_trending_businesses', { 
+      limit_count: limit,
+      days_back: timeframeDays
+    });
+    
+    if (error) {
+      console.error('Error fetching trending businesses:', error.message);
+      // Return high risk businesses as fallback
+      return getHighRiskBusinesses(limit);
+    }
+    
+    // Map the returned data to match the Business interface
+    // The SQL function returns business_id, but we need id
+    return (data || []).map(item => ({
+      id: item.business_id,
+      name: item.name,
+      address: item.address,
+      city: item.city,
+      state: item.state,
+      zip: item.zip,
+      report_count: item.report_count,
+      scam_score: item.scam_score,
+      created_at: item.created_at,
+      // Store the recent_reports count in a property we can use later
+      recent_report_count: item.recent_reports
+    }));
+  } catch (err) {
+    console.error('Error in getTrendingBusinesses:', err);
+    // Fallback to high risk businesses
+    return getHighRiskBusinesses(limit);
+  }
+}
+
+// Get businesses to watch (combines high risk, recent, and trending)
+export async function getBusinessesToWatch(limit = 10): Promise<Business[]> {
+  try {
+    // Get businesses from all three categories
+    const [highRisk, recent, trending] = await Promise.all([
+      getHighRiskBusinesses(limit),
+      getRecentlyReportedBusinesses(limit),
+      getTrendingBusinesses(limit)
+    ]);
+    
+    // Combine and deduplicate
+    const businessMap = new Map<string, Business>();
+    
+    // Add businesses with priority flags
+    [...highRisk, ...recent, ...trending].forEach(business => {
+      if (!businessMap.has(business.id)) {
+        business.isHighRisk = highRisk.some((b: Business) => b.id === business.id);
+        business.isRecent = recent.some((b: Business) => b.id === business.id);
+        business.isTrending = trending.some((b: Business) => b.id === business.id);
+        businessMap.set(business.id, business);
+      }
+    });
+    
+    // Convert to array and sort by priority
+    const combined = Array.from(businessMap.values());
+    
+    // Sort by priority: first trending, then high risk, then recent
+    combined.sort((a: Business, b: Business) => {
+      // First by trending
+      if (a.isTrending && !b.isTrending) return -1;
+      if (!a.isTrending && b.isTrending) return 1;
+      
+      // Then by high risk (scam score)
+      if (a.isHighRisk && !b.isHighRisk) return -1;
+      if (!a.isHighRisk && b.isHighRisk) return 1;
+      if (a.isHighRisk && b.isHighRisk) {
+        return (b.scam_score || 0) - (a.scam_score || 0);
+      }
+      
+      // Then by recency
+      if (a.isRecent && !b.isRecent) return -1;
+      if (!a.isRecent && b.isRecent) return 1;
+      
+      return 0;
+    });
+    
+    // Return limited number
+    return combined.slice(0, limit);
+  } catch (error) {
+    console.error('Error getting businesses to watch:', error);
+    return [];
+  }
 }

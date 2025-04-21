@@ -171,3 +171,28 @@ a {
 .text-center {
   text-align: center;
 }
+
+/* Form select styling */
+select {
+  color: hsl(var(--foreground)) !important;
+  background-color: hsl(var(--background)) !important;
+}
+
+select option {
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
+}
+
+.select-with-visible-options {
+  color: hsl(var(--foreground));
+}
+
+/* Form input styling */
+input, textarea {
+  color: hsl(var(--foreground)) !important;
+  background-color: hsl(var(--background)) !important;
+}
+
+.input-with-visible-text {
+  color: hsl(var(--foreground));
+}

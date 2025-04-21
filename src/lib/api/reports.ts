@@ -18,10 +18,16 @@ export interface Report {
   reporter_contact?: string;
   created_at?: string;
   user_id?: string;
+  category: string;
 }
 
 // Submit a new report
 export async function submitReport(reportData: Report) {
+  // Make sure category is set if not provided
+  if (!reportData.category) {
+    reportData.category = reportData.report_type;
+  }
+  
   const { data, error } = await supabase
     .from('reports')
     .insert(reportData)

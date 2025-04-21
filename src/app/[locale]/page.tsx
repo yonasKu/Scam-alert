@@ -96,7 +96,7 @@ export default function Home() {
   ];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+    <main style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }} id="main-content" tabIndex={-1} aria-label="Home page main content">
       {/* Hero Section with Map Background */}
       <HeroSection />
 
@@ -106,7 +106,7 @@ export default function Home() {
         padding: "4rem 0",
         backgroundColor: "hsla(var(--background))",
         position: "relative"
-      }}>
+      }} aria-labelledby="map-section-title">
         <div className="container" style={{ padding: "0 1.5rem", maxWidth: "1200px", margin: "2rem auto" }}>
           <MapSection businesses={recentReports} />
         </div>
@@ -123,6 +123,6 @@ export default function Home() {
 
       {/* How It Works Section */}
       <HowItWorks />
-    </div>
+    </main>
   );
 }

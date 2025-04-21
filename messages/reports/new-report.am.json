@@ -52,7 +52,7 @@
       "privacyNote": "ይህ በህለነ አይታየቅም። ለማረጋገጥ ብቻ ይጠቀማል።"
     },
     "reportDetails": {
-      "title": "የሪፖርቱ ዝርዝሮች",
+      "title": "የሪፖርት ዝርዝሮች",
       "description": "የፍትሃዊ አይደሉ የንግድ ልምዶችን በማሳወቅ ማህበረሰብዎን ይጠብቁ። * የተሰጡትን መስኮቶች ሁሉ ያስገቡ።",
       "priceBefore": "የመጀመሪያ ዋጋ",
       "priceBeforePlaceholder": "ምሳሌ: ብር 100",
@@ -150,8 +150,12 @@
   },
   "successMessage": "ለሪፖርትዎ እናመሰግናለን! የእርስዎ አስተዋጽኦ ማህበረሰቡን ለመጠበቅ ይረዳል።",
   "errorMessage": "ሪፖርትዎን በማስገባት ላይ ስህተት ተከስቷል። እባክዎ እንደገና ይሞክሩ።",
+  "reportDetails": "የሪፖርት ዝርዝሮች",
   "buttons": {
     "cancel": "ይቅር",
-    "submit": "ሪፖርት አስገባ"
+    "submit": "ሪፖርት አስገባ",
+    "submitting": "በማስገባት ላይ...",
+    "submitAnotherReport": "ሌላ ሪፖርት አስገባ",
+    "viewAllReports": "ሁሉንም ሪፖርቶች ይመልከቱ"
   }
 }

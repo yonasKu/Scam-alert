@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { fetchReports } from '@/lib/api/reports';
 import { fetchBusinesses } from '@/lib/api/businesses';
 import { fetchWatchlist } from '@/lib/api/watchlist';
+import { supabase } from '@/lib/supabase';
 
 export default function DataLogPage() {
   const [reports, setReports] = useState<any[]>([]);
@@ -24,6 +25,22 @@ export default function DataLogPage() {
   // Load data from Supabase
   useEffect(() => {
     async function loadData() {
+      // Check database schema first
+      try {
+        const { data: schemaData, error: schemaError } = await supabase
+          .from('information_schema.columns')
+          .select('*')
+          .eq('table_name', 'reports');
+        
+        if (schemaError) {
+          console.error('Error fetching schema:', schemaError);
+        } else {
+          console.log('Database schema for reports table:', schemaData);
+        }
+      } catch (err) {
+        console.error('Error checking schema:', err);
+      }
+
       // Load reports
       try {
         setLoading(prev => ({ ...prev, reports: true }));
