@@ -369,7 +369,11 @@ export default function Home() {
   return (
     <main style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }} id="main-content" tabIndex={-1} aria-label="Home page main content">
       {/* Hero Section with Map Background */}
-      <HeroSection />
+      <HeroSection 
+        // We can fetch and pass actual stats here when available
+        // reportsCount={actualsReportsCount}
+        // communitiesCount={actualCommunitiesCount}
+      />
 
       {/* Map Section */}
       <section style={{
