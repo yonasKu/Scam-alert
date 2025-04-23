@@ -16,17 +16,23 @@ export const ImageWithFallback = ({
   ...props
 }: ImageWithFallbackProps) => {
   const [imgSrc, setImgSrc] = React.useState(src);
+  const [error, setError] = React.useState(false);
 
   React.useEffect(() => {
-    setImgSrc(src);
-  }, [src]);
+    // Only update the image source if it's a new image or we haven't had an error yet
+    if (src !== imgSrc && !error) {
+      setImgSrc(src);
+      setError(false);
+    }
+  }, [src, imgSrc, error]);
 
   return (
     <Image
       {...props}
-      src={imgSrc}
-      alt={alt}
+      src={error ? fallbackSrc : imgSrc}
+      alt={alt || 'Image'}
       onError={() => {
+        setError(true);
         setImgSrc(fallbackSrc);
       }}
     />

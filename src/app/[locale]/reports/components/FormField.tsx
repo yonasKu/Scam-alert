@@ -56,11 +56,13 @@ export function FormField({
             borderRadius: "0.375rem",
             border: "1px solid hsla(var(--border) / 0.5)",
             backgroundColor: "hsla(var(--background) / 0.5)",
+            color: "hsl(var(--foreground))",
             transition: "border-color 0.2s, box-shadow 0.2s",
             height: "2.75rem",
             width: "100%"
           }}
           required={required}
+          className="select-with-visible-options"
         >
           {children}
         </select>
@@ -77,9 +79,11 @@ export function FormField({
             borderRadius: "0.375rem",
             border: "1px solid hsla(var(--border) / 0.5)",
             backgroundColor: "hsla(var(--background) / 0.5)",
+            color: "hsl(var(--foreground))",
             transition: "border-color 0.2s, box-shadow 0.2s"
           }}
           required={required}
+          className="input-with-visible-text"
         />
       )}
       

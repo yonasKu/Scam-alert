@@ -18,9 +18,14 @@
 - [x] Implement businesses page with detailed listings
 - [x] Add watchlist page for suspicious businesses
 - [x] Create receipt transparency tracking section
+- [x] Add modal for viewing business details in receipt transparency section
+- [x] Add Badge component for business verification/alert levels
 - [x] Design consistent styling across all pages
 - [x] Add responsive navigation with mobile menu
 - [x] Fix CSS styling issues and hydration errors
+- [x] Implement internationalization with next-intl and [locale] routing
+- [x] Add Amharic and English translation files
+- [x] Configure next-intl and next.config for App Router
 
 ### Visual and UI Improvements
 - [x] Add gradient text for section headings
@@ -42,37 +47,37 @@
 ## Pending Tasks
 
 ### Short-term Tasks
-- [ ] Set up backend API routes for report submission
-- [ ] Implement data persistence with database connection
-- [ ] Add user authentication for report submission
+- [ ] Set up backend API routes for report submission (Supabase integration)
+- [ ] Implement data persistence with Supabase database connection
+- [ ] Add user authentication for report submission (Supabase Auth)
 - [ ] Create user profiles and dashboards
-- [ ] Add image upload functionality for evidence
-- [ ] Implement advanced search and filtering
+- [ ] Add image upload functionality for evidence (Supabase Storage)
+- [ ] Implement advanced search and filtering (location, business, category)
 - [ ] Add form save/draft functionality
+- [ ] Add comment functionality for reports (Supabase real-time)
+- [ ] Add report voting/verification system
 
 ### Mid-term Tasks
 - [ ] Create admin dashboard for report moderation
 - [ ] Add email notifications for report updates
 - [ ] Implement geolocation for business mapping
-- [ ] Add comment functionality for reports
 - [ ] Create verified business response system
-- [ ] Implement report voting/verification system
 - [ ] Build trending reports and statistics pages
 
 ### Long-term Tasks
 - [ ] Develop mobile application version
-- [ ] Implement AI-assisted categorization of reports
+- [ ] Implement AI-assisted categorization of reports and duplicate detection
 - [ ] Add integration with consumer protection agencies
 - [ ] Create public API for data access
 - [ ] Implement advanced analytics and visualization
 - [ ] Build community features (forums, discussions)
-- [ ] Add multi-language support
+- [ ] Add additional languages and locale-specific formatting
 
 ## Technical Debt Items
-- [ ] Refactor inline styles to component-based styling
+- [ ] Refactor inline styles to component-based styling (where possible)
 - [ ] Implement comprehensive test suite
 - [ ] Add accessibility improvements (ARIA, keyboard navigation)
 - [ ] Optimize image loading and performance
-- [ ] Create detailed documentation
-- [ ] Set up CI/CD pipeline for automated deployment
+- [ ] Create detailed documentation (update BLUEPRINT.md and README.md)
+- [ ] Set up CI/CD pipeline for automated deployment (Vercel)
 - [ ] Implement proper error handling and logging

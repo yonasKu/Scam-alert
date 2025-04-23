@@ -25,7 +25,27 @@
     "priceAfter": "በኋላ፦ {after}",
     "reporterComment": "የሪፖርት አድራጊ አስተያየት",
     "businessName": "የንግድ ስም፦ {name}",
-    "item": "ዕቃ፦ {item}"
+    "item": "ዕቃ፦ {item}",
+    "addedToDatabase": "ይህ ሪፖርት ለግምገማ ወደ ዳታቤዛችን ተጨምሯል",
+    "reportTitle": "የሪፖርት ርዕስ",
+    "description": "መግለጫ",
+    "reportedBy": "ሪፖርት ያደረገው {name}",
+    "anonymous": "ስም አልባ",
+    "on": "በ {date}",
+    "reportTypes": {
+      "price_gouging": "የዋጋ ንረት",
+      "price_gouging_desc": "ከመጠን ያለፈ የዋጋ ጭማሪ",
+      "no_receipt": "ደረሰኝ የለም",
+      "no_receipt_desc": "ለግዢው ደረሰኝ አልተሰጠም",
+      "suspicious_activity": "አጠራጣሪ እንቅስቃሴ",
+      "suspicious_activity_desc": "ያልተለመደ ወይም አሳሳቢ ባህሪ",
+      "unauthorized_charges": "ያልተፈቀዱ ክፍያዎች",
+      "unauthorized_charges_desc": "ያለፈቃድ የተደረጉ ክፍያዎች",
+      "false_advertising": "ሐሰተኛ ማስታወቂያ",
+      "false_advertising_desc": "አሳሳች የምርት መግለጫ",
+      "hidden_fees": "የተደበቁ ክፍያዎች",
+      "hidden_fees_desc": "ያልተገለጹ ተጨማሪ ክፍያዎች"
+    }
   },
   "reportDetails": {
     "modalTitle": "የሪፖርት ዝርዝሮች",
@@ -41,11 +61,16 @@
     "closeButton": "ዝጋ"
   },
   "noReportsFound": "ለተመረጠው አጣሪ ምንም ሪፖርቶች አልተገኙም።",
-  "loadMore": "ተጨማሪ ሪፖርቶችን ጫን",
+  "loadMore": "ተጨማሪ ጫን",
+  "loading": "በመጫን ላይ...",
   "originalPrice": "የመጀመሪያ ዋጋ",
   "gougedPrice": "የጨመረ ዋጋ",
   "receiptIssue": "የደረሰኝ ችግር",
   "suspiciousActivityLabel": "አጠራጣሪ እንቅስቃሴ",
   "unauthorizedIssue": "ያልተፈቀደ ችግር",
-  "verified": "የተረጋገጠ"
+  "verified": "የተረጋገጠ",
+  "totalReports": "ጠቅላላ ሪፖርቶች",
+  "uniqueBusinesses": "ልዩ ንግዶች",
+  "resultsTitle": "የሪፖርት ውጤቶች",
+  "resultsCount": "{count} ሪፖርቶች ተገኝተዋል"
 }

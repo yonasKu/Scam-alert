@@ -105,9 +105,10 @@ export default function ReceiptTransparencySection({ businesses }: ReceiptTransp
 
         <div style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 300px))",
           gap: "1.5rem",
-          marginBottom: "2rem"
+          marginBottom: "2rem",
+          justifyContent: "center"
         }}>
           {businesses.map(business => (
             <Card key={business.id} style={{
@@ -125,7 +126,9 @@ export default function ReceiptTransparencySection({ businesses }: ReceiptTransp
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = "translateY(0)";
                 e.currentTarget.style.boxShadow = "";
-              }}>
+              }}
+              onClick={() => openBusinessDetails(business)}
+            >
               <CardHeader style={{ padding: "1.25rem 1.25rem 0.75rem" }}>
                 <div style={{
                   display: "flex",

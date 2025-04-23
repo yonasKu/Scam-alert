@@ -28,6 +28,24 @@
     "step3Desc": "Browse reports by location or business type to identify recurring offenders and pricing patterns in your area. Share your findings with others to help keep your community informed.",
     "learnMoreButton": "Learn More About Our Process"
   },
+  "form": {
+    "fields": {
+      "photo": {
+        "label": "Upload Photo (Optional)",
+        "uploadText": "Click or drag and drop to upload",
+        "dragDropText": "Drag and drop your image here",
+        "helpText": "Adding a photo helps verify your report and provides evidence of the issue.",
+        "selectedImage": "Selected Image",
+        "remove": "Remove",
+        "change": "Change Photo"
+      },
+      "contact": {
+        "label": "Your Contact Information (Optional)",
+        "placeholder": "Email or phone number",
+        "helpText": "We may contact you for additional information if needed."
+      }
+    }
+  },
   "LanguageSwitcher": {
     "english": "English",
     "amharic": "Amharic"
@@ -36,6 +54,7 @@
     "sectionTitle": "Recently Reported Businesses",
     "sectionDescription": "These businesses have been reported for potential price gouging in the last 30 days",
     "viewAllReports": "View All Reports",
+    "submitNewReport": "Submit New Report",
     "noReports": "No reports available.",
     "reportedOn": "Reported on {date}",
     "location": "Location: {location}",
@@ -92,12 +111,17 @@
     "sectionTitle": "Watchlist",
     "sectionDescription": "Businesses with multiple reports or high alert levels.",
     "businessName": "Business Name",
+    "businessNameColumn": "Business Name",
     "issue": "Issue",
+    "issueColumn": "Issue",
     "reports": "Reports",
+    "reportsColumn": "Reports",
     "alertLevel": "Alert Level",
+    "alertLevelColumn": "Alert Level",
     "high": "High",
     "medium": "Medium",
-    "low": "Low"
+    "low": "Low",
+    "viewFullWatchlistButton": "View Full Watchlist"
   },
   "ReportsPage": {
     "pageTitle": "Price Gouging Reports",
@@ -126,7 +150,27 @@
       "priceAfter": "After: {after}",
       "reporterComment": "Reporter Comment",
       "businessName": "Business Name: {name}",
-      "item": "Item: {item}"
+      "item": "Item: {item}",
+      "addedToDatabase": "This report has been added to our database for review",
+      "reportTitle": "Report Title",
+      "description": "Description",
+      "reportedBy": "Reported by {name}",
+      "anonymous": "Anonymous",
+      "on": "on {date}",
+      "reportTypes": {
+        "price_gouging": "Price Gouging",
+        "price_gouging_desc": "Excessive price increase",
+        "no_receipt": "No Receipt",
+        "no_receipt_desc": "No receipt provided for purchase",
+        "suspicious_activity": "Suspicious Activity",
+        "suspicious_activity_desc": "Unusual or concerning behavior",
+        "unauthorized_charges": "Unauthorized Charges",
+        "unauthorized_charges_desc": "Charges without permission",
+        "false_advertising": "False Advertising",
+        "false_advertising_desc": "Misleading product description",
+        "hidden_fees": "Hidden Fees",
+        "hidden_fees_desc": "Undisclosed additional charges"
+      }
     },
     "reportDetails": {
       "modalTitle": "Report Details",

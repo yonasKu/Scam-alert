@@ -78,3 +78,24 @@ The application follows a modern web architecture:
 - Development: Local environment
 - Staging/Production: Vercel for frontend
 - Database: Supabase (free tier initially, with upgrade path)
+
+
+Color Refinements
+Created a background color function that provides subtle, matching backgrounds
+Used proper color opacity for backgrounds vs. borders
+Ensured good contrast between text and backgrounds
+Made icon containers more visually distinct
+
+Layout Improvements
+
+Changed alignment to flex-start for better text wrapping
+Added proper line height for description text
+Ensured consistent padding across all components
+Made components responsive with flexible layouts
+
+Replaced generic icons with more specific ones for each report type:
+Receipt Issue: Document icon with lines
+Suspicious Activity: Warning triangle icon
+Unauthorized Charges: Credit card icon
+False Advertising: Catalog/brochure icon
+Hidden Fees: Dollar sign icon

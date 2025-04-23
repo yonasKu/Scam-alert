@@ -42,8 +42,18 @@
       },
       "photo": {
         "label": "Upload Photo (optional)",
-        "uploadText": "Click to upload or drag and drop",
+        "uploadText": "Click or drag and drop to upload",
+        "dragDropText": "Drag and drop your image here",
+        "helpText": "Adding a photo helps verify your report and provides evidence of the issue.",
+        "selectedImage": "Selected Image",
+        "remove": "Remove",
+        "change": "Change Photo",
         "fileFormats": "PNG, JPG, or WEBP up to 5MB"
+      },
+      "contact": {
+        "label": "Your Contact Information (Optional)",
+        "placeholder": "Email or phone number",
+        "helpText": "We may contact you for additional information if needed."
       }
     },
     "reportDetails": {
@@ -116,7 +126,15 @@
     },
     "buttons": {
       "submit": "Submit Report",
-      "cancel": "Cancel"
+      "submitting": "Submitting...",
+      "cancel": "Cancel",
+      "submitAnotherReport": "Submit Another Report",
+      "viewAllReports": "View All Reports"
+    },
+    "successMessage": {
+      "title": "Report Submitted Successfully!",
+      "description": "Thank you for your report! Your contribution helps protect the community from unfair business practices.",
+      "reportDetails": "Report Details"
     }
   },
   "categories": {
@@ -139,6 +157,14 @@
     "unauthorizedBusiness": "Unauthorized Business",
     "other": "Other"
   },
+  "reportDetails": "Report Details",
   "successMessage": "Thank you for your report! Your contribution helps protect the community.",
-  "errorMessage": "There was an error submitting your report. Please try again."
+  "errorMessage": "There was an error submitting your report. Please try again.",
+  "buttons": {
+    "submit": "Submit Report",
+    "submitting": "Submitting...",
+    "cancel": "Cancel",
+    "submitAnotherReport": "Submit Another Report",
+    "viewAllReports": "View All Reports"
+  }
 }

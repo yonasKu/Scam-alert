@@ -4,9 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/lib/supabase";
+import { useRouter, useParams } from "next/navigation";
+import { uploadImage } from "@/lib/storage";
 
 import { FormField } from "./FormField";
-import { ReportTypeOption } from "./ReportTypeOption";
+import { PhotoUpload } from "./PhotoUpload";
+import { ReportTypeSelector } from "./ReportTypeSelector";
+import { SuccessMessage } from "./SuccessMessage";
 
 interface ReportFormProps {
   t: (key: string, params?: Record<string, any>) => string;
@@ -20,6 +25,7 @@ type FormDataType = {
   category: string;
   description: string;
   photo: File | null;
+  photoPreview: string | null;
   contact: string;
   reportType: string;
   priceBefore: string;
@@ -31,6 +37,14 @@ type FormDataType = {
 };
 
 export function ReportForm({ t, windowWidth }: ReportFormProps) {
+  const router = useRouter();
+  const params = useParams();
+  const locale = (params.locale as string) || 'en';
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [submittedReport, setSubmittedReport] = useState<any>(null);
+  const [fadeOut, setFadeOut] = useState(false);
   const [formData, setFormData] = useState<FormDataType>({
     title: "",
     businessName: "",
@@ -38,6 +52,7 @@ export function ReportForm({ t, windowWidth }: ReportFormProps) {
     category: "",
     description: "",
     photo: null,
+    photoPreview: null,
     contact: "",
     reportType: "",
     priceBefore: "",
@@ -58,18 +73,149 @@ export function ReportForm({ t, windowWidth }: ReportFormProps) {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFormData({ ...formData, photo: e.target.files[0] });
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      
+      reader.onload = (event) => {
+        setFormData({ 
+          ...formData, 
+          photo: file,
+          photoPreview: event.target?.result as string
+        });
+      };
+      
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // In a real app, this would submit the data to an API
-    console.log("Submitting report:", formData);
-    alert(t('successMessage'));
-    // Reset form or redirect
+  const handleRemovePhoto = () => {
+    setFormData({
+      ...formData,
+      photo: null,
+      photoPreview: null
+    });
   };
 
+  const handleReportTypeChange = (reportType: string) => {
+    setFormData({...formData, reportType});
+  };
+
+  const handleSubmitAnother = () => {
+    setShowSuccessMessage(false);
+    setFadeOut(true);
+    
+    // Reset form for a new submission
+    setFormData({
+      title: "",
+      businessName: "",
+      location: "",
+      category: "",
+      description: "",
+      photo: null,
+      photoPreview: null,
+      contact: "",
+      reportType: "",
+      priceBefore: "",
+      priceAfter: "",
+      receiptIssue: "",
+      suspiciousActivity: "",
+      unauthorizedIssue: "",
+      item: ""
+    });
+  };
+
+  const handleViewReports = () => {
+    setFadeOut(true);
+    setTimeout(() => {
+      setShowSuccessMessage(false);
+      router.push(`/${locale}/reports`);
+    }, 300);
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      // Handle photo upload - using our storage module
+      let photoUrl = null;
+      
+      if (formData.photo) {
+        // Try to upload to Supabase storage first
+        photoUrl = await uploadImage(formData.photo, 'reports', 'report-photos');
+        
+        // If storage upload fails, fall back to using the data URL
+        if (!photoUrl && formData.photoPreview) {
+          photoUrl = formData.photoPreview;
+        }
+      }
+      
+      // Insert report data into Supabase
+      const { error: insertError, data: report } = await supabase
+        .from('reports')
+        .insert({
+          title: formData.title,
+          business_name: formData.businessName,
+          location: formData.location,
+          category: formData.category,
+          description: formData.description,
+          photo_url: photoUrl, // This will be either the Supabase URL or base64 string
+          reporter_contact: formData.contact,
+          report_type: formData.reportType,
+          price_before: formData.priceBefore || null,
+          price_after: formData.priceAfter || null,
+          receipt_issue: formData.receiptIssue || null,
+          suspicious_activity: formData.suspiciousActivity || null,
+          unauthorized_issue: formData.unauthorizedIssue || null,
+          item: formData.item || null,
+          created_at: new Date().toISOString()
+        })
+        .select();
+        
+      if (insertError) {
+        throw new Error(`Error inserting report: ${insertError.message}`);
+      }
+      
+      // Show success message
+      console.log('Report submitted successfully:', report[0]);
+      setSubmittedReport(report[0]);
+      setShowSuccessMessage(true);
+      setIsSubmitting(false);
+      
+      // Debug: Check if the success message state is being set correctly
+      setTimeout(() => {
+        console.log('Success message state:', { showSuccessMessage, submittedReport: report[0] });
+      }, 100);
+    } catch (err) {
+      console.error("Error submitting report:", err);
+      setError(err instanceof Error ? err.message : "Unknown error");
+      setIsSubmitting(false);
+    }
+  };
+
+  // If success message is showing, only render the success message
+  if (showSuccessMessage && submittedReport) {
+    return (
+      <Card style={{
+        boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+        borderRadius: "0.75rem",
+        overflow: "hidden"
+      }}>
+        <CardContent style={{ padding: "2rem 1.5rem" }}>
+          <SuccessMessage 
+            report={submittedReport} 
+            onSubmitAnother={handleSubmitAnother}
+            onViewReports={handleViewReports}
+            t={t}
+            windowWidth={windowWidth}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Otherwise render the form
   return (
     <Card style={{
       boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
@@ -111,6 +257,21 @@ export function ReportForm({ t, windowWidth }: ReportFormProps) {
       <CardContent style={{ padding: "2rem 1.5rem" }}>
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+
+            {/* Error Message */}
+            {error && (
+              <div style={{
+                padding: "1rem",
+                backgroundColor: "hsla(var(--destructive) / 0.1)",
+                borderRadius: "0.5rem",
+                color: "hsl(var(--destructive))",
+                marginBottom: "1rem"
+              }}>
+                <p style={{ margin: 0 }}>{t('errorMessage')}</p>
+                <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.875rem" }}>{error}</p>
+              </div>
+            )}
+
             {/* Basic Information Fields */}
             <FormField
               id="title"
@@ -160,134 +321,13 @@ export function ReportForm({ t, windowWidth }: ReportFormProps) {
             </FormField>
 
             {/* Report Type */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "1.5rem" }}>
-              <label 
-                htmlFor="reportType" 
-                style={{ 
-                  fontSize: "1.125rem", 
-                  fontWeight: "600", 
-                  color: "hsl(var(--foreground))",
-                  fontFamily: "var(--font-heading)"
-                }}
-              >
-                {t('form.fields.reportType.label')}
-              </label>
-              
-              <div style={{
-                display: "grid",
-                gridTemplateColumns: windowWidth >= 768 ? "repeat(2, 1fr)" : "1fr",
-                gap: "1rem"
-              }}>
-                {/* Report type options */}
-                <ReportTypeOption
-                  id="reportType-price-gouging"
-                  value="price_gouging"
-                  title={t('form.reportTypes.priceGouging.title')}
-                  description={t('form.reportTypes.priceGouging.description')}
-                  isSelected={formData.reportType === "price_gouging"}
-                  onClick={() => setFormData({...formData, reportType: "price_gouging"})}
-                  iconBgColor="hsla(var(--destructive) / 0.1)"
-                  iconColor="hsl(var(--destructive))"
-                  icon={(
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
-                      <path d="M3 6h18"/>
-                      <path d="M16 10a4 4 0 0 1-8 0"/>
-                    </svg>
-                  )}
-                />
-                
-                <ReportTypeOption
-                  id="reportType-no-receipt"
-                  value="no_receipt"
-                  title={t('form.reportTypes.noReceipt.title')}
-                  description={t('form.reportTypes.noReceipt.description')}
-                  isSelected={formData.reportType === "no_receipt"}
-                  onClick={() => setFormData({...formData, reportType: "no_receipt"})}
-                  iconBgColor="hsla(var(--destructive) / 0.1)"
-                  iconColor="hsl(var(--destructive))"
-                  icon={(
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect width="18" height="18" x="3" y="3" rx="2" />
-                      <line x1="9" x2="15" y1="9" y2="9" />
-                      <line x1="9" x2="15" y1="15" y2="15" />
-                    </svg>
-                  )}
-                />
-                
-                <ReportTypeOption
-                  id="reportType-suspicious"
-                  value="suspicious_activity"
-                  title={t('form.reportTypes.suspiciousActivity.title')}
-                  description={t('form.reportTypes.suspiciousActivity.description')}
-                  isSelected={formData.reportType === "suspicious_activity"}
-                  onClick={() => setFormData({...formData, reportType: "suspicious_activity"})}
-                  iconBgColor="hsla(var(--warning) / 0.1)"
-                  iconColor="hsl(var(--warning))"
-                  icon={(
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
-                  )}
-                />
-                
-                <ReportTypeOption
-                  id="reportType-unauthorized"
-                  value="unauthorized_business"
-                  title={t('form.reportTypes.unauthorizedBusiness.title')}
-                  description={t('form.reportTypes.unauthorizedBusiness.description')}
-                  isSelected={formData.reportType === "unauthorized_business"}
-                  onClick={() => setFormData({...formData, reportType: "unauthorized_business"})}
-                  iconBgColor="hsla(var(--primary) / 0.1)"
-                  iconColor="hsl(var(--primary))"
-                  icon={(
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                      <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                  )}
-                />
+            <ReportTypeSelector 
+              selectedType={formData.reportType}
+              onSelect={handleReportTypeChange}
+              t={t}
+              windowWidth={windowWidth}
+            />
 
-                <ReportTypeOption
-                  id="reportType-false-advertising"
-                  value="false_advertising"
-                  title={t('form.reportTypes.falseAdvertising.title')}
-                  description={t('form.reportTypes.falseAdvertising.description')}
-                  isSelected={formData.reportType === "false_advertising"}
-                  onClick={() => setFormData({...formData, reportType: "false_advertising"})}
-                  iconBgColor="hsla(var(--warning) / 0.1)"
-                  iconColor="hsl(var(--warning))"
-                  icon={(
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m3 8 4-4 4 4"/>
-                      <path d="M11 12H3"/>
-                      <path d="m9 16 4 4 4-4"/>
-                      <path d="M20 12h-8"/>
-                    </svg>
-                  )}
-                />
-
-                <ReportTypeOption
-                  id="reportType-hidden-fees"
-                  value="hidden_fees"
-                  title={t('form.reportTypes.hiddenFees.title')}
-                  description={t('form.reportTypes.hiddenFees.description')}
-                  isSelected={formData.reportType === "hidden_fees"}
-                  onClick={() => setFormData({...formData, reportType: "hidden_fees"})}
-                  iconBgColor="hsla(var(--destructive) / 0.1)"
-                  iconColor="hsl(var(--destructive))"
-                  icon={(
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"/>
-                      <path d="M12 8v4"/>
-                      <path d="M12 16h.01"/>
-                    </svg>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Description */}
             {/* Conditional fields based on report type */}
             {formData.reportType === 'price_gouging' && (
               <>
@@ -340,11 +380,13 @@ export function ReportForm({ t, windowWidth }: ReportFormProps) {
                     borderRadius: "0.375rem",
                     border: "1px solid hsla(var(--border) / 0.5)",
                     backgroundColor: "hsla(var(--background) / 0.5)",
+                    color: "hsl(var(--foreground))",
                     transition: "border-color 0.2s, box-shadow 0.2s",
                     height: "2.75rem",
                     width: "100%"
                   }}
                   required={formData.reportType === 'no_receipt'}
+                  className="select-with-visible-options"
                 >
                   <option value="">{t('form.evidence.receiptIssueTypes.placeholder', { default: 'Select receipt issue' })}</option>
                   <option value="no_receipt">{t('form.evidence.receiptIssueTypes.noReceipt', { default: 'No receipt offered at all' })}</option>
@@ -408,80 +450,22 @@ export function ReportForm({ t, windowWidth }: ReportFormProps) {
             />
 
             {/* Photo Upload */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-              <label 
-                htmlFor="photo" 
-                style={{ 
-                  fontSize: "0.9375rem", 
-                  fontWeight: "600", 
-                  marginBottom: "0.25rem",
-                  color: "hsl(var(--foreground))"
-                }}
-              >
-                {t('form.fields.photo.label')}
-              </label>
-              <div style={{
-                border: "2px dashed hsla(var(--border) / 0.7)",
-                borderRadius: "0.5rem",
-                padding: "1.5rem",
-                textAlign: "center",
-                backgroundColor: "hsla(var(--muted) / 0.1)",
-                cursor: "pointer"
-              }}>
-                <div style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: "0.75rem"
-                }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                  </svg>
-                  <input 
-                    id="photo" 
-                    type="file" 
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    style={{
-                      display: "none"
-                    }}
-                  />
-                  <label htmlFor="photo" style={{
-                    cursor: "pointer",
-                    color: "hsl(var(--primary))",
-                    fontWeight: "500"
-                  }}>
-                    {t('form.fields.photo.uploadText')}
-                  </label>
-                  <p style={{
-                    fontSize: "0.875rem",
-                    color: "hsl(var(--muted-foreground))"
-                  }}>
-                    {t('form.fields.photo.fileFormats')}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <PhotoUpload 
+              photoPreview={formData.photoPreview}
+              onFileChange={handleFileChange}
+              onRemove={handleRemovePhoto}
+              t={t}
+            />
             
             {/* Contact Info */}
             <FormField
               id="contact"
-              label={t('form.contact.title')}
-              placeholder={t('form.contact.contactInfoPlaceholder')}
+              label={t('form.fields.contact.label')}
+              placeholder={t('form.fields.contact.placeholder')}
               value={formData.contact}
               onChange={handleChange}
-              description={t('form.contact.privacyNote')}
             />
-          </div>
 
-          {/* Form Buttons */}
-          <div style={{
-            marginTop: "2rem",
-            display: "flex",
-            flexDirection: "column",
-            gap: "1rem"
-          }}>
             <div style={{
               display: "flex",
               gap: "1rem",
@@ -497,6 +481,7 @@ export function ReportForm({ t, windowWidth }: ReportFormProps) {
                   padding: "0 1.5rem",
                   height: "2.75rem"
                 }}
+                disabled={isSubmitting}
               >
                 <Link href="/reports">{t('buttons.cancel')}</Link>
               </Button>
@@ -507,8 +492,9 @@ export function ReportForm({ t, windowWidth }: ReportFormProps) {
                   height: "2.75rem", 
                   backgroundColor: "hsl(var(--primary))"
                 }}
+                disabled={isSubmitting}
               >
-                {t('buttons.submit')}
+                {isSubmitting ? t('buttons.submitting') : t('buttons.submit')}
               </Button>
             </div>
           </div>

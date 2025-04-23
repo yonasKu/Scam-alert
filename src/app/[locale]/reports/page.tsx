@@ -6,6 +6,8 @@ import { useState, useEffect } from "react";
 import { usePathname } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { fetchReports, fetchReportsPaginated, Report } from "@/lib/api/reports";
+import ReportCard from "@/components/ui/report-card";
 
 export default function ReportsPage() {
   const pathname = usePathname();
@@ -13,11 +15,30 @@ export default function ReportsPage() {
   // Extract locale from path
   const locale = pathname.split('/')[1] || 'en';
   
-  // State for translations
+  // State for translations and reports
   const [translations, setTranslations] = useState<Record<string, any> | null>(null);
+  const [reports, setReports] = useState<Report[]>([]);
+  const [filteredReports, setFilteredReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('');
   
-  // Load the page-specific translations
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 12; // Adjust based on your UI design
+  
+  // Stats state
+  const [totalReports, setTotalReports] = useState(0);
+  const [uniqueBusinesses, setUniqueBusinesses] = useState(0);
+  const [animatedReportCount, setAnimatedReportCount] = useState(0);
+  const [animatedBusinessCount, setAnimatedBusinessCount] = useState(0);
+  
+  // Load translations
   useEffect(() => {
     async function loadTranslations() {
       try {
@@ -36,13 +57,115 @@ export default function ReportsPage() {
     loadTranslations();
   }, [locale]);
   
-  // If translations are not loaded yet, show a loading state
-  if (!translations) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  // Fetch initial reports
+  useEffect(() => {
+    async function getInitialReports() {
+      try {
+        setInitialLoading(true);
+        const { data, total, totalPages } = await fetchReportsPaginated(1, itemsPerPage);
+        
+        // Enhance reports with image URLs
+        const enhancedReports = data.map((report) => ({
+          ...report,
+          imageUrl: report.photo_url || getRandomImageUrl()
+        }));
+        
+        setReports(enhancedReports);
+        setFilteredReports(enhancedReports);
+        setTotalItems(total);
+        setHasMore(enhancedReports.length < total);
+        setError(null);
+        
+        // Calculate stats
+        setTotalReports(total);
+        
+        // Calculate unique businesses
+        const uniqueBusinessNames = new Set(enhancedReports.map(report => report.business_name));
+        setUniqueBusinesses(uniqueBusinessNames.size);
+        
+      } catch (err) {
+        console.error('Error fetching reports:', err);
+        setError('Failed to load reports. Please try again later.');
+      } finally {
+        setInitialLoading(false);
+        setLoading(false);
+      }
+    }
+    
+    getInitialReports();
+  }, []);
+  
+  // Function to load more reports
+  async function loadMoreReports() {
+    if (loadingMore) return;
+    
+    try {
+      setLoadingMore(true);
+      const nextPage = page + 1;
+      const { data, total } = await fetchReportsPaginated(nextPage, itemsPerPage);
+      
+      if (data.length === 0) {
+        setHasMore(false);
+        return;
+      }
+      
+      const enhancedReports = data.map((report) => ({
+        ...report,
+        imageUrl: report.photo_url || getRandomImageUrl()
+      }));
+      
+      setReports(prev => [...prev, ...enhancedReports]);
+      setFilteredReports(prev => [...prev, ...enhancedReports]);
+      setPage(nextPage);
+      setHasMore((reports.length + enhancedReports.length) < total);
+    } catch (err) {
+      console.error('Error fetching more reports:', err);
+    } finally {
+      setLoadingMore(false);
+    }
   }
   
-  // Helper function to use translations
-  const t = (key: string, params?: Record<string, string | number>) => {
+  // Animate stats counters
+  useEffect(() => {
+    if (loading || totalReports === 0) return;
+    
+    let reportCounter = 0;
+    let businessCounter = 0;
+    
+    const reportInterval = setInterval(() => {
+      reportCounter += Math.ceil(totalReports / 20);
+      if (reportCounter >= totalReports) {
+        reportCounter = totalReports;
+        clearInterval(reportInterval);
+      }
+      setAnimatedReportCount(reportCounter);
+    }, 50);
+    
+    const businessInterval = setInterval(() => {
+      businessCounter += Math.ceil(uniqueBusinesses / 20);
+      if (businessCounter >= uniqueBusinesses) {
+        businessCounter = uniqueBusinesses;
+        clearInterval(businessInterval);
+      }
+      setAnimatedBusinessCount(businessCounter);
+    }, 50);
+    
+    return () => {
+      clearInterval(reportInterval);
+      clearInterval(businessInterval);
+    };
+  }, [loading, totalReports, uniqueBusinesses]);
+  
+  // Get random image URL
+  function getRandomImageUrl() {
+    const images = ['/shop1.jpg', '/shop2.jpg', '/shop3.jpg', '/shop4.jpg', '/shop5.jpg', '/shop6.jpg', '/shop7.jpg'];
+    return images[Math.floor(Math.random() * images.length)];
+  }
+  
+  // Helper function for translations
+  function t(key: string, params?: Record<string, string | number>) {
+    if (!translations) return key;
+    
     const keys = key.split('.');
     let value: any = translations;
     
@@ -62,185 +185,66 @@ export default function ReportsPage() {
     }
     
     return value;
-  };
-
-  // Mock data for reports with expanded information
-  const reports = [
-    {
-      id: 1,
-      title: "Grocery store tripled prices after storm",
-      description: "Local market increased essential item prices by 300% during the recent weather emergency.",
-      businessName: "SuperMart Grocery",
-      location: "Springfield, Main St",
-      coordinates: { lat: 42.1154, lng: -72.5400 },
-      date: "April 10, 2025",
-      category: "Groceries",
-      reportType: "price_gouging",
-      reporterComment: "I went to buy basic supplies after the storm and found that water bottles were $12 each, bread was $15 a loaf, and batteries were $25 per pack. This is clearly taking advantage of people in need.",
-      price: { before: "$1.99", after: "$5.99" },
-      item: "Bottled Water",
-      reporter: "John D.",
-      reporterRating: 4.5,
-      verified: true,
-      imageUrl: "/shop1.jpg",
-      votes: 37
-    },
-    {
-      id: 2,
-      title: "Gas station price gouging",
-      description: "Premium fuel suddenly increased from $3.50 to $7.20 per gallon with no explanation.",
-      businessName: "QuickFuel Gas Station",
-      location: "Riverside, Highway 95",
-      coordinates: { lat: 33.9806, lng: -117.3755 },
-      date: "April 8, 2025",
-      category: "Fuel",
-      reportType: "price_gouging",
-      reporterComment: "The station raised prices overnight without any change in supply or market conditions. When questioned, the manager claimed 'supply chain issues' but this seems excessive.",
-      price: { before: "$3.50", after: "$7.20" },
-      item: "Premium Fuel (per gallon)",
-      reporter: "Maria L.",
-      reporterRating: 4.8,
-      verified: true,
-      imageUrl: "/shop2.jpg",
-      votes: 52
-    },
-    {
-      id: 3,
-      title: "Water bottle price surge",
-      description: "Bottled water being sold at $10 per bottle during local water outage.",
-      businessName: "MiniMart Corner Store",
-      location: "Oakville, Central Ave",
-      coordinates: { lat: 36.1627, lng: -86.7816 },
-      date: "April 5, 2025",
-      category: "Essentials",
-      reportType: "price_gouging",
-      reporterComment: "When the town's water supply was contaminated, this store immediately hiked prices on all bottled water. They were selling individual bottles that normally cost under $1 for $10 each, knowing people had no choice.",
-      price: { before: "$0.99", after: "$9.99" },
-      item: "Bottled Water (500ml)",
-      reporter: "Sam T.",
-      reporterRating: 4.2,
-      verified: true,
-      imageUrl: "/shop3.jpg",
-      votes: 89
-    },
-    {
-      id: 4,
-      title: "Electronics store markup",
-      description: "Popular gaming console suddenly priced 40% above MSRP without any supply shortage.",
-      businessName: "GameStop Electronics",
-      location: "Tech City Mall",
-      coordinates: { lat: 37.7749, lng: -122.4194 },
-      date: "April 3, 2025",
-      category: "Electronics",
-      reportType: "price_gouging",
-      reporterComment: "The store had at least 20 units in stock but was charging $700 for a console with an MSRP of $500. When asked about the markup, the sales associate said it was due to 'high demand' despite plenty of stock available.",
-      price: { before: "$499.99", after: "$699.99" },
-      item: "Gaming Console",
-      reporter: "Alex K.",
-      reporterRating: 4.7,
-      verified: false,
-      imageUrl: "/shop4.jpg",
-      votes: 23
-    },
-    {
-      id: 5,
-      title: "Restaurant menu price increase",
-      description: "All menu items increased by 25% overnight with no improvements in service or food quality.",
-      businessName: "Gourmet Dining",
-      location: "Downtown Dining District",
-      coordinates: { lat: 40.7128, lng: -74.0060 },
-      date: "April 1, 2025",
-      category: "Restaurants",
-      reportType: "price_gouging",
-      reporterComment: "I've been a regular at this restaurant for years, and they suddenly increased all prices by 25% with no explanation or improvement in service. When I asked the manager about it, they said it was due to 'inflation' but this seems excessive.",
-      price: { before: "Menu average $22", after: "Menu average $27.50" },
-      item: "Full menu",
-      reporter: "Patricia M.",
-      reporterRating: 4.9,
-      verified: false,
-      imageUrl: "/shop5.jpg",
-      votes: 18
-    },
-    {
-      id: 6,
-      title: "No receipt provided for expensive electronics",
-      description: "Store refused to provide receipt for $1200 purchase of a smartphone.",
-      businessName: "QuickTech Electronics",
-      location: "Eastside Mall, 2nd Floor",
-      coordinates: { lat: 41.8781, lng: -87.6298 },
-      date: "April 12, 2025",
-      category: "No Receipt",
-      reportType: "no_receipt",
-      reporterComment: "I purchased an expensive smartphone for $1200 and the cashier told me they would email the receipt but never did. When I returned to request a paper receipt, they claimed their system was down and couldn't provide one. Seemed very suspicious.",
-      item: "Smartphone",
-      reporter: "David R.",
-      reporterRating: 4.6,
-      verified: true,
-      imageUrl: "/shop6.jpg",
-      votes: 32,
-      receiptIssue: "refused_receipt"
-    },
-    {
-      id: 7,
-      title: "Credit card skimmer suspected at gas station",
-      description: "Unauthorized charges appeared shortly after using card at this location.",
-      businessName: "Highway Express Gas",
-      location: "Interstate 95, Exit 103",
-      coordinates: { lat: 39.0840, lng: -77.1528 },
-      date: "April 9, 2025",
-      category: "Suspicious Activity",
-      reportType: "suspicious_activity",
-      reporterComment: "I filled up at this gas station and noticed unauthorized charges on my card just 2 hours later. When I went back to inspect the card reader, it seemed loose and possibly tampered with. Several other customers reported similar issues online.",
-      item: "Gas pump payment terminal",
-      reporter: "Michael T.",
-      reporterRating: 4.8,
-      verified: true,
-      imageUrl: "/shop7.jpg",
-      votes: 65,
-      suspiciousActivity: "card_skimming"
-    },
-    {
-      id: 8,
-      title: "Handwritten receipts only at jewelry store",
-      description: "High-value purchases documented only with handwritten notes.",
-      businessName: "Golden Treasures Jewelry",
-      location: "Fashion Avenue, Suite 210",
-      coordinates: { lat: 34.0522, lng: -118.2437 },
-      date: "April 7, 2025",
-      category: "No Receipt",
-      reportType: "no_receipt",
-      reporterComment: "Purchased a $950 necklace and they only provided a handwritten note on letterhead with no tax information or breakdown. When I requested a proper receipt, they said their 'printer was broken' but this seemed to be their standard practice.",
-      item: "Gold necklace",
-      reporter: "Sarah L.",
-      reporterRating: 4.4,
-      verified: false,
-      imageUrl: "/shop8.jpg",
-      votes: 27,
-      receiptIssue: "handwritten"
-    },
-    {
-      id: 9,
-      title: "Health code violations at restaurant",
-      description: "Observed unsafe food handling practices and sanitation issues.",
-      businessName: "Quick Burger Joint",
-      location: "Central Plaza, Unit 5",
-      coordinates: { lat: 32.7157, lng: -117.1611 },
-      date: "April 4, 2025",
-      category: "Unauthorized Business",
-      reportType: "unauthorized_business",
-      reporterComment: "While waiting for my order, I observed staff not washing hands between handling raw meat and ready-to-eat foods. The kitchen area visible from the counter was visibly dirty with what appeared to be old food debris. Reported to local health department.",
-      item: "Food preparation",
-      reporter: "Emily H.",
-      reporterRating: 4.7,
-      verified: true,
-      imageUrl: "/shop9.jpg",
-      votes: 41,
-      unauthorizedIssue: "health_violations"
+  }
+  
+  // Filter reports when search or filter changes
+  useEffect(() => {
+    if (!translations || reports.length === 0) return;
+    
+    const filterMapping: Record<string, string> = {
+      [t('filterCategories.allReports')]: "All Reports",
+      [t('filterCategories.groceries')]: "Groceries",
+      [t('filterCategories.fuel')]: "Fuel",
+      [t('filterCategories.essentials')]: "Essentials",
+      [t('filterCategories.electronics')]: "Electronics",
+      [t('filterCategories.restaurants')]: "Restaurants",
+      [t('filterCategories.accommodation')]: "Accommodation",
+      [t('filterCategories.noReceipt')]: "No Receipt",
+      [t('filterCategories.suspiciousActivity')]: "Suspicious Activity",
+      [t('filterCategories.unauthorizedBusiness')]: "Unauthorized Business"
+    };
+    
+    let filtered = [...reports];
+    
+    // Apply category filter
+    if (activeFilter && activeFilter !== t('filterCategories.allReports')) {
+      const englishCategory = filterMapping[activeFilter] || activeFilter;
+      filtered = filtered.filter(report => 
+        report.category === englishCategory ||
+        report.category.toLowerCase().includes(englishCategory.toLowerCase()) ||
+        (activeFilter === t('filterCategories.noReceipt') && report.report_type === "no_receipt") ||
+        (activeFilter === t('filterCategories.suspiciousActivity') && report.report_type === "suspicious_activity") ||
+        (activeFilter === t('filterCategories.unauthorizedBusiness') && report.report_type === "unauthorized_charges")
+      );
     }
-  ];
-
-  // Define report categories for filtering using translations
-  const categories = [
+    
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(report => 
+        (report.title?.toLowerCase() || '').includes(query) ||
+        (report.business_name?.toLowerCase() || '').includes(query) ||
+        (report.description?.toLowerCase() || '').includes(query) ||
+        (report.location?.toLowerCase() || '').includes(query) ||
+        (report.category?.toLowerCase() || '').includes(query)
+      );
+    }
+    
+    setFilteredReports(filtered);
+    
+    // Reset pagination when filters change
+    if (searchQuery.trim() || (activeFilter && activeFilter !== t('filterCategories.allReports'))) {
+      // If we're filtering, we don't know if there are more items without a new server request
+      // For simplicity, we'll disable "Load More" when filters are applied
+      setHasMore(false);
+    } else {
+      // If no filters are applied, we can use our original hasMore calculation
+      setHasMore(reports.length < totalItems);
+    }
+  }, [searchQuery, activeFilter, reports, translations, totalItems, t]);
+  
+  // Define report categories for filtering
+  const categories = translations ? [
     t('filterCategories.allReports'),
     t('filterCategories.groceries'),
     t('filterCategories.fuel'),
@@ -251,555 +255,408 @@ export default function ReportsPage() {
     t('filterCategories.noReceipt'),
     t('filterCategories.suspiciousActivity'),
     t('filterCategories.unauthorizedBusiness')
-  ];
-
-  // Create mapping for translated filter names to their corresponding values for filtering
-  const filterMapping: Record<string, string> = {
-    [t('filterCategories.allReports')]: "All Reports",
-    [t('filterCategories.groceries')]: "Groceries",
-    [t('filterCategories.fuel')]: "Fuel",
-    [t('filterCategories.essentials')]: "Essentials",
-    [t('filterCategories.electronics')]: "Electronics",
-    [t('filterCategories.restaurants')]: "Restaurants",
-    [t('filterCategories.accommodation')]: "Accommodation",
-    [t('filterCategories.noReceipt')]: "No Receipt",
-    [t('filterCategories.suspiciousActivity')]: "Suspicious Activity",
-    [t('filterCategories.unauthorizedBusiness')]: "Unauthorized Business"
-  };
-
-  // Filter reports based on active filter
-  const filteredReports = reports.filter(report => {
-    // Use a type assertion to tell TypeScript that activeFilter is a valid key
-    const rawFilter = filterMapping[activeFilter as keyof typeof filterMapping];
-    return rawFilter === "All Reports" || 
-      report.category === rawFilter ||
-      (rawFilter === "No Receipt" && report.reportType === "no_receipt") ||
-      (rawFilter === "Suspicious Activity" && report.reportType === "suspicious_activity") ||
-      (rawFilter === "Unauthorized Business" && report.reportType === "unauthorized_business");
-  });
-
+  ] : [];
+  
+  // Loading state
+  if (!translations) {
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  }
+  
   return (
     <div style={{ 
       display: "flex", 
-      flexDirection: "column", 
-      padding: "2rem 1.5rem 4rem", 
-      backgroundColor: "hsl(var(--background))"
+      flexDirection: "column",
+      minHeight: "100vh"
     }}>
-      <div style={{
-        position: "relative",
-        width: "100%",
+      <div style={{ 
         maxWidth: "1200px",
-        margin: "0 auto 2rem"
+        width: "100%",
+        margin: "0 auto",
+        padding: "2rem 1.5rem"
       }}>
-        <div style={{
-          maxWidth: "1200px",
-          margin: "0 auto 2rem",
-          width: "100%",
-          position: "relative",
-          padding: "2rem",
-          borderRadius: "0.75rem",
-          backgroundColor: "hsla(var(--background) / 0.8)",
-          borderBottom: "1px solid hsla(var(--border) / 0.2)",
+        {/* Page Header */}
+        <div style={{ 
+          display: "flex", 
+          flexDirection: "column", 
+          alignItems: "center", 
+          textAlign: "center", 
+          maxWidth: "900px", 
+          margin: "0 auto",
           marginBottom: "2rem"
         }}>
-          <h1 style={{
-            fontSize: "clamp(2rem, 4vw, 3rem)",
-            fontWeight: "bold",
-            marginBottom: "1rem",
+          <h1 style={{ 
+            fontSize: "clamp(2rem, 4vw, 3rem)", 
+            fontWeight: "bold", 
+            marginBottom: "1rem", 
             fontFamily: "var(--font-heading)",
-            background: "linear-gradient(to right, hsl(var(--warning)), hsl(var(--foreground)))",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
+            backgroundImage: "linear-gradient(to right, hsl(var(--primary)), hsl(var(--secondary)))",
             backgroundClip: "text",
-            color: "transparent" // Using color instead of textFillColor for TypeScript compatibility
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent"
           }}>
-            {t('pageTitle')}
+            {t('pageTitle') || "Scam Reports"}
           </h1>
-          <p style={{ 
-            fontSize: "1.125rem",
-            color: "hsl(var(--muted-foreground))",
-            maxWidth: "700px",
-            margin: "0 auto",
-            lineHeight: 1.6
-          }}>
-            {t('pageDescription')}
-          </p>
-        </div>
-
-        <div className="container" style={{ maxWidth: "1400px", margin: "0 auto" }}>
           <div style={{ 
-            display: "flex", 
-            flexDirection: "column",
-            gap: "2rem"
+            fontSize: "1.125rem", 
+            color: "hsl(var(--muted-foreground))", 
+            marginBottom: "2rem", 
+            maxWidth: "700px", 
+            lineHeight: "1.6" 
           }}>
-            {/* Top Controls */}
+            {t('pageDescription') || "View and analyze consumer reports of potential scams."}
+          </div>
+          
+          {/* Stats Section */}
+          <div style={{
+            display: "flex",
+            justifyContent: "center",
+            marginBottom: "2rem",
+            width: "100%",
+          }}>
             <div style={{
               display: "flex",
-              justifyContent: "space-between",
+              flexDirection: "column",
               alignItems: "center",
-              flexWrap: "wrap",
-              gap: "1rem"
+              padding: "1.5rem",
+              backgroundColor: "hsla(var(--muted) / 0.05)",
+              borderRadius: "0.75rem",
+              minWidth: "180px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              border: "1px solid hsla(var(--border) / 0.1)"
             }}>
               <div style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem"
+                fontSize: "2.5rem",
+                fontWeight: "bold",
+                color: "hsl(var(--primary))",
+                marginBottom: "0.5rem"
               }}>
-                <div style={{
-                  backgroundColor: "hsla(var(--primary) / 0.1)",
-                  borderRadius: "50%",
-                  width: "2.5rem",
-                  height: "2.5rem",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "hsl(var(--primary))"
-                }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                    <path d="M2 17l10 5 10-5"/>
-                    <path d="M2 12l10 5 10-5"/>
-                  </svg>
-                </div>
-                <span style={{ fontSize: "1.125rem", fontWeight: "500" }}>
-                  {t('reportsCountText', { count: reports.length })}
-                </span>
+                {animatedReportCount}
               </div>
-              
-              <Button asChild style={{
-                height: "2.75rem",
-                padding: "0 1.25rem"
+              <div style={{
+                fontSize: "0.875rem",
+                color: "hsl(var(--muted-foreground))",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em"
               }}>
-                <Link href={`/${locale}/reports/new`}>{t('submitNewReport')}</Link>
-              </Button>
+                {translations ? t('totalReports') : 'Total Reports'}
+              </div>
             </div>
-
-            {/* Filter Pills */}
+          </div>
+        </div>
+        
+        {/* Search and Filter Section */}
+        <div style={{ marginBottom: "2rem" }}>
+          <div style={{ marginBottom: "1.5rem" }}>
+            {/* Search Input and Submit Button Row */}
             <div style={{
               display: "flex",
-              gap: "0.5rem",
-              flexWrap: "wrap",
-              padding: "1rem 0",
-              borderBottom: "1px solid hsla(var(--border) / 0.5)"
+              alignItems: "center",
+              gap: "1rem",
+              marginBottom: "1.5rem",
+              flexWrap: "wrap"
             }}>
-              {categories.map(category => (
+              <div style={{ 
+                position: "relative", 
+                flex: "1",
+                minWidth: "250px"
+              }}>
+                <input
+                  type="text"
+                  placeholder={t('searchPlaceholder') || "Search reports..."}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem 1rem 0.75rem 2.5rem",
+                    borderRadius: "0.375rem",
+                    border: "1px solid hsla(var(--border) / 0.8)",
+                    backgroundColor: "transparent",
+                    fontSize: "0.875rem",
+                    outline: "none",
+                    transition: "border-color 0.2s, box-shadow 0.2s"
+                  }}
+                />
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  style={{
+                    position: "absolute",
+                    left: "0.75rem",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "hsl(var(--muted-foreground))"
+                  }}
+                >
+                  <circle cx="11" cy="11" r="8"/>
+                  <path d="m21 21-4.3-4.3"/>
+                </svg>
+              </div>
+              
+              <Link href={`/${locale}/reports/new`} style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                whiteSpace: "nowrap",
+                borderRadius: "0.375rem",
+                fontWeight: "500",
+                transition: "all 0.2s",
+                cursor: "pointer",
+                border: "none",
+                outline: "none",
+                backgroundColor: "hsl(var(--primary))",
+                color: "hsl(var(--primary-foreground))",
+                height: "2.75rem",
+                padding: "0 1.25rem",
+                boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                fontSize: "0.875rem"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "hsl(var(--primary-hover))";
+                e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.15)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "hsl(var(--primary))";
+                e.currentTarget.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)";
+              }}
+              >
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  style={{ marginRight: "0.5rem" }}
+                >
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                {translations ? t('submitNewReport') : 'Submit New Report'}
+              </Link>
+            </div>
+            
+            {/* Filter Buttons */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1rem" }}>
+              {categories.map((category) => (
                 <button
                   key={category}
-                  onClick={() => setActiveFilter(category)}
                   style={{
-                    padding: "0.5rem 1rem",
-                    borderRadius: "9999px",
-                    fontSize: "0.875rem",
-                    fontWeight: "500",
-                    border: "none",
+                    padding: "0.5rem 0.75rem",
+                    borderRadius: "0.375rem",
+                    borderWidth: "1px",
+                    borderStyle: "solid",
+                    borderColor: activeFilter === category 
+                      ? "hsl(var(--primary))" 
+                      : "hsla(var(--border) / 0.5)",
                     backgroundColor: activeFilter === category 
                       ? "hsl(var(--primary))" 
-                      : "hsla(var(--muted) / 0.5)",
+                      : "transparent",
                     color: activeFilter === category 
                       ? "hsl(var(--primary-foreground))" 
                       : "hsl(var(--foreground))",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
                     cursor: "pointer",
-                    transition: "all 0.2s ease"
+                    transition: "all 0.2s",
+                    boxShadow: activeFilter === category 
+                      ? "0 2px 5px rgba(0,0,0,0.1)" 
+                      : "none"
                   }}
+                  onClick={() => setActiveFilter(category)}
                 >
                   {category}
                 </button>
               ))}
             </div>
-
-            {/* Reports Grid */}
+          </div>
+        </div>
+        
+        {/* Report Results Section */}
+        <div style={{ marginBottom: "2rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <h2 style={{ fontSize: "1.25rem", fontWeight: "600", marginBottom: "0.25rem" }}>
+              {translations ? t('resultsTitle') : 'Report Results'}
+            </h2>
+            <p style={{ color: "hsl(var(--muted-foreground))" }}>
+              {translations ? t('resultsCount', { count: filteredReports.length }) : `${filteredReports.length} reports found`}
+            </p>
+          </div>
+        </div>
+        
+        {/* Reports Grid */}
+        {initialLoading ? (
+          <div style={{ 
+            padding: '3rem 2rem',
+            textAlign: 'center',
+            backgroundColor: 'hsla(var(--muted) / 0.1)',
+            borderRadius: '0.75rem',
+            color: 'hsl(var(--muted-foreground))'
+          }}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="40"
+              height="40"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ margin: '0 auto 1rem' }}
+              className="animate-spin"
+            >
+              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+            </svg>
+            <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', fontWeight: '600' }}>
+              {t('loadingReports') || "Loading Reports"}
+            </h3>
+            <div>{t('pleaseWaitWhileWeLoadReports') || "Please wait while we load the reports..."}</div>
+          </div>
+        ) : error ? (
+          <div style={{ 
+            padding: '3rem 2rem',
+            textAlign: 'center',
+            backgroundColor: 'hsla(var(--destructive) / 0.1)',
+            borderRadius: '0.5rem',
+            marginBottom: '2rem',
+            color: 'hsl(var(--destructive))'
+          }}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="40"
+              height="40"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ margin: '0 auto 1rem' }}
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', fontWeight: '600' }}>
+              {t('errorLoadingReports') || "Error Loading Reports"}
+            </h3>
+            <p>{error}</p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => window.location.reload()}
+              style={{ marginTop: '1rem' }}
+            >
+              {t('retryButton') || "Retry"}
+            </Button>
+          </div>
+        ) : filteredReports.length === 0 ? (
+          <div style={{ 
+            padding: '3rem 2rem',
+            textAlign: 'center',
+            backgroundColor: 'hsla(var(--muted) / 0.1)',
+            borderRadius: '0.75rem',
+            color: 'hsl(var(--muted-foreground))'
+          }}>
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="40" 
+              height="40" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              style={{ margin: '0 auto 1rem' }}
+            >
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', fontWeight: '600' }}>
+              {t('noReportsFound') || "No Reports Found"}
+            </h3>
+            <div>{t('tryAdjustingYourFilters') || "Try adjusting your filters or search terms"}</div>
+          </div>
+        ) : (
+          <>
             <div style={{ 
               display: "grid", 
               gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", 
               gap: "2rem"
             }}>
               {filteredReports.map((report) => (
-                <Card key={report.id} style={{ 
-                  display: "flex", 
-                  flexDirection: "column", 
-                  height: "100%",
-                  overflow: "hidden",
-                  position: "relative",
-                  transition: "transform 0.2s, box-shadow 0.2s",
-                  cursor: "pointer"
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-5px)";
-                  e.currentTarget.style.boxShadow = "0 12px 20px rgba(0,0,0,0.1)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "";
-                }}
-                >
-                  {/* Report Image */}
-                  <div style={{
-                    height: "200px",
-                    width: "100%",
-                    position: "relative"
-                  }}>
-                    <ImageWithFallback 
-                      src={report.imageUrl} 
-                      alt={report.businessName}
-                      fill
-                      style={{
-                        objectFit: "cover"
-                      }}
-                    />
-                    <div style={{
-                      position: "absolute",
-                      top: "1rem",
-                      right: "1rem",
-                      backgroundColor: "hsla(var(--primary) / 0.9)",
-                      color: "white",
-                      borderRadius: "9999px",
-                      padding: "0.35rem 0.75rem",
-                      fontSize: "0.75rem",
-                      fontWeight: "600"
-                    }}>
-                      {report.category}
-                    </div>
-                    
-                    {report.verified && (
-                      <div style={{
-                        position: "absolute",
-                        top: "1rem",
-                        left: "1rem",
-                        backgroundColor: "hsla(var(--success) / 0.9)",
-                        color: "white",
-                        borderRadius: "9999px",
-                        padding: "0.35rem 0.75rem",
-                        fontSize: "0.75rem",
-                        fontWeight: "600",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.35rem"
-                      }}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                          <polyline points="22 4 12 14.01 9 11.01"/>
-                        </svg>
-                        Verified
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Card Header */}
-                  <CardHeader>
-                    <div style={{
-                      marginBottom: "0.5rem"
-                    }}>
-                      <div style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
-                        marginBottom: "0.5rem"
-                      }}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-                          <circle cx="12" cy="10" r="3"/>
-                        </svg>
-                        <span style={{
-                          fontSize: "0.875rem",
-                          color: "hsl(var(--muted-foreground))"
-                        }}>{t('reportCard.location', {location: report.location})}</span>
-                      </div>
-                      <div style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.5rem"
-                      }}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="10"/>
-                          <polyline points="12 6 12 12 16 14"/>
-                        </svg>
-                        <span style={{
-                          fontSize: "0.875rem",
-                          color: "hsl(var(--muted-foreground))"
-                        }}>{report.date}</span>
-                      </div>
-                    </div>
-
-                    <CardTitle style={{
-                      marginBottom: "0.5rem",
-                      fontSize: "1.25rem",
-                      lineHeight: "1.3"
-                    }}>{report.businessName}</CardTitle>
-                    <CardDescription style={{
-                      lineHeight: "1.4"
-                    }}>{report.title}</CardDescription>
-                  </CardHeader>
-                  
-                  {/* Card Content */}
-                  <CardContent style={{ 
-                    padding: "0 1.5rem", 
-                    flexGrow: 1
-                  }}>
-                    {/* Price Comparison */}
-                    {report.reportType === 'price_gouging' && (
-                      <div style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "0.75rem 1rem",
-                        backgroundColor: "hsla(var(--muted) / 0.3)",
-                        borderRadius: "0.5rem",
-                        marginBottom: "1.25rem"
-                      }}>
-                        <div>
-                          <div style={{
-                            fontSize: "0.75rem",
-                            color: "hsl(var(--foreground))",
-                            marginBottom: "0.25rem"
-                          }}>{t('originalPrice')}</div>
-                          <div style={{
-                            fontWeight: "bold",
-                            color: "hsl(var(--foreground))"
-                          }}>{report.price?.before || "N/A"}</div>
-                        </div>
-                        
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="9 18 15 12 9 6"/>
-                        </svg>
-                        
-                        <div>
-                          <div style={{
-                            fontSize: "0.75rem",
-                            color: "hsl(var(--destructive))",
-                            marginBottom: "0.25rem"
-                          }}>{t('gougedPrice')}</div>
-                          <div style={{
-                            fontWeight: "bold",
-                            color: "hsl(var(--destructive))"
-                          }}>{report.price?.after || "N/A"}</div>
-                        </div>
-                      </div>
-                    )}
-
-                    {report.reportType === 'no_receipt' && (
-                      <div style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.75rem",
-                        padding: "0.75rem 1rem",
-                        backgroundColor: "hsla(var(--muted) / 0.3)",
-                        borderRadius: "0.5rem",
-                        marginBottom: "1.25rem"
-                      }}>
-                        <div style={{
-                          width: "2.5rem",
-                          height: "2.5rem",
-                          borderRadius: "50%",
-                          backgroundColor: "hsla(var(--destructive) / 0.1)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "hsl(var(--destructive))"
-                        }}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect width="18" height="18" x="3" y="3" rx="2" />
-                            <line x1="9" x2="15" y1="9" y2="9" />
-                            <line x1="9" x2="15" y1="15" y2="15" />
-                          </svg>
-                        </div>
-                        <div>
-                          <div style={{
-                            fontSize: "0.875rem",
-                            fontWeight: "500",
-                            marginBottom: "0.25rem",
-                            color: "hsl(var(--destructive))"
-                          }}>{t('receiptIssue')}</div>
-                          <div style={{
-                            fontSize: "0.875rem"
-                          }}>
-                            {report.receiptIssue === 'no_receipt' && 'No receipt offered at all'}
-                            {report.receiptIssue === 'refused_receipt' && 'Receipt refused when requested'}
-                            {report.receiptIssue === 'incomplete_receipt' && 'Incomplete/illegible receipt'}
-                            {report.receiptIssue === 'verbal_receipt' && 'Only verbal confirmation, no paper receipt'}
-                            {report.receiptIssue === 'handwritten' && 'Suspicious handwritten receipt'}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {report.reportType === 'suspicious_activity' && (
-                      <div style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.75rem",
-                        padding: "0.75rem 1rem",
-                        backgroundColor: "hsla(var(--warning) / 0.2)",
-                        borderRadius: "0.5rem",
-                        marginBottom: "1.25rem"
-                      }}>
-                        <div style={{
-                          width: "2.5rem",
-                          height: "2.5rem",
-                          borderRadius: "50%",
-                          backgroundColor: "hsla(var(--warning) / 0.2)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "hsl(var(--warning))"
-                        }}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                          </svg>
-                        </div>
-                        <div>
-                          <div style={{
-                            fontSize: "0.875rem",
-                            fontWeight: "500",
-                            marginBottom: "0.25rem",
-                            color: "hsl(var(--warning))"
-                          }}>{t('suspiciousActivityLabel')}</div>
-                          <div style={{
-                            fontSize: "0.875rem"
-                          }}>
-                            {report.suspiciousActivity === 'card_skimming' && 'Credit card skimming detected'}
-                            {report.suspiciousActivity === 'counterfeit' && 'Selling counterfeit products'}
-                            {report.suspiciousActivity === 'identity_theft' && 'Identity theft concerns'}
-                            {report.suspiciousActivity === 'data_collection' && 'Excessive personal data collection'}
-                            {report.suspiciousActivity === 'unauthorized_charges' && 'Unauthorized charges'}
-                            {report.suspiciousActivity === 'digital_scam' && 'Digital/online scam'}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {report.reportType === 'unauthorized_business' && (
-                      <div style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.75rem",
-                        padding: "0.75rem 1rem",
-                        backgroundColor: "hsla(var(--muted) / 0.3)",
-                        borderRadius: "0.5rem",
-                        marginBottom: "1.25rem"
-                      }}>
-                        <div style={{
-                          width: "2.5rem",
-                          height: "2.5rem",
-                          borderRadius: "50%",
-                          backgroundColor: "hsla(var(--primary) / 0.1)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "hsl(var(--primary))"
-                        }}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                            <circle cx="12" cy="12" r="3"/>
-                          </svg>
-                        </div>
-                        <div>
-                          <div style={{
-                            fontSize: "0.875rem",
-                            fontWeight: "500",
-                            marginBottom: "0.25rem",
-                            color: "hsl(var(--primary))"
-                          }}>{t('unauthorizedIssue')}</div>
-                          <div style={{
-                            fontSize: "0.875rem"
-                          }}>
-                            {report.unauthorizedIssue === 'unlicensed' && 'Operating without proper license'}
-                            {report.unauthorizedIssue === 'health_violations' && 'Health code violations'}
-                            {report.unauthorizedIssue === 'illegal_products' && 'Selling illegal/prohibited products'}
-                            {report.unauthorizedIssue === 'tax_evasion' && 'Suspected tax evasion'}
-                            {report.unauthorizedIssue === 'labor_violations' && 'Labor law violations'}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Reporter Comment */}
-                    <div style={{
-                      marginBottom: "1rem"
-                    }}>
-                      <div style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
-                        marginBottom: "0.75rem"
-                      }}>
-                        <div style={{
-                          width: "2rem",
-                          height: "2rem",
-                          borderRadius: "50%",
-                          backgroundColor: "hsla(var(--primary) / 0.1)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "hsl(var(--primary))",
-                          fontWeight: "medium"
-                        }}>
-                          {report.reporter.charAt(0)}
-                        </div>
-                        <div>
-                          <div style={{
-                            fontSize: "0.875rem",
-                            fontWeight: "500"
-                          }}>
-                            {report.reporter}
-                          </div>
-                          <div style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.25rem",
-                            fontSize: "0.75rem",
-                            color: "hsl(var(--muted-foreground))"
-                          }}>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                              <path d="M2 17l10 5 10-5"/>
-                              <path d="M2 12l10 5 10-5"/>
-                            </svg>
-                            {report.reporterRating}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <p style={{
-                        fontSize: "0.875rem", 
-                        color: "hsl(var(--muted-foreground))",
-                        lineHeight: "1.5",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        display: "-webkit-box",
-                        WebkitLineClamp: "3",
-                        WebkitBoxOrient: "vertical"
-                      }}>
-                        &ldquo;{report.reporterComment}&rdquo;
-                      </p>
-                    </div>
-                    
-                    {/* Votes */}
-                    <div style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.5rem",
-                      fontSize: "0.875rem",
-                      color: "hsl(var(--muted-foreground))"
-                    }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M7 10v12"/>
-                        <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"/>
-                      </svg>
-                      <span>{report.votes} people found this helpful</span>
-                    </div>
-                  </CardContent>
-                  
-                  {/* Card Footer */}
-                  <CardFooter>
-                    <Button variant="outline" size="sm" asChild style={{ width: "100%" }}>
-                      <Link href={`/reports/${report.id}`}>View Full Report</Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
+                <ReportCard key={report.id} report={report} locale={locale} translations={translations} />
               ))}
             </div>
-          </div>
-        </div>
+            
+            {/* Load More Button */}
+            {hasMore && (
+              <div style={{ display: "flex", justifyContent: "center", margin: "2rem 0" }}>
+                <Button 
+                  onClick={loadMoreReports} 
+                  disabled={loadingMore}
+                  variant="outline"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    padding: "0.5rem 1.5rem"
+                  }}
+                >
+                  {loadingMore ? (
+                    <>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        style={{ animation: "spin 1s linear infinite" }}
+                      >
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                      </svg>
+                      {t('loading') || "Loading..."}
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="7 13 12 18 17 13"></polyline>
+                        <polyline points="7 6 12 11 17 6"></polyline>
+                      </svg>
+                      {t('loadMore') || "Load More"}
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
