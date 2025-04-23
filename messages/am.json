@@ -28,6 +28,24 @@
     "step3Desc": "በአካባቢዎ ተደጋጋሚ ወንጀለኞችን እና የዋጋ አወጣጥ ዘይቤዎችን ለመለየት ሪፖርቶችን በቦታ ወይም በንግድ አይነት ያስሱ። ማህበረሰብዎን ለማሳወቅ ግኝቶችዎን ለሌሎች ያካፍሉ።",
     "learnMoreButton": "ስለ ሂደታችን የበለጠ ይወቁ"
   },
+  "form": {
+    "fields": {
+      "photo": {
+        "label": "ፎቶ ይጫኑ (አማራጭ)",
+        "uploadText": "ለመጫን ጠቅ ያድርጉ ወይም ይጎትቱ እና ይጣሉ",
+        "dragDropText": "ምስልዎን እዚህ ይጎትቱ እና ይጣሉ",
+        "helpText": "ፎቶ መጨመር ሪፖርትዎን ለማረጋገጥ እና የችግሩን ማስረጃ ለመስጠት ይረዳል።",
+        "selectedImage": "የተመረጠ ምስል",
+        "remove": "አስወግድ",
+        "change": "ፎቶ ቀይር"
+      },
+      "contact": {
+        "label": "የእርስዎ የመገኛ መረጃ (አማራጭ)",
+        "placeholder": "ኢሜይል ወይም ስልክ ቁጥር",
+        "helpText": "አስፈላጊ ከሆነ ለተጨማሪ መረጃ ልናገኝዎት እንችላለን።"
+      }
+    }
+  },
   "LanguageSwitcher": {
     "english": "እንግሊዝኛ",
     "amharic": "አማርኛ"
@@ -36,6 +54,7 @@
     "sectionTitle": "በቅርብ ጊዜ የተዘገቡ ንግዶች",
     "sectionDescription": "እነዚህ ንግዶች ባለፉት 30 ቀናት ውስጥ ለእጅግ ከፍተኛ ዋጋ ሪፖርት ተደርገዋል",
     "viewAllReports": "ሁሉንም ሪፖርቶች ይመልከቱ",
+    "submitNewReport": "አዲስ ሪፖርት አስገባ",
     "noReports": "ምንም ሪፖርቶች አልተገኙም።",
     "reportedOn": "በ {date} ላይ ሪፖርት ተደርጓል",
     "location": "ቦታ፦ {location}",
@@ -92,12 +111,17 @@
     "sectionTitle": "የክትትል ዝርዝር",
     "sectionDescription": "ብዙ ሪፖርቶች ወይም ከፍተኛ የማስጠንቀቂያ ደረጃዎች ያሉባቸው ንግዶች።",
     "businessName": "የንግድ ስም",
+    "businessNameColumn": "የንግድ ስም",
     "issue": "ችግር",
+    "issueColumn": "ችግር",
     "reports": "ሪፖርቶች",
+    "reportsColumn": "ሪፖርቶች",
     "alertLevel": "የማስጠንቀቂያ ደረጃ",
+    "alertLevelColumn": "የማስጠንቀቂያ ደረጃ",
     "high": "ከፍተኛ",
     "medium": "መካከለኛ",
-    "low": "ዝቅተኛ"
+    "low": "ዝቅተኛ",
+    "viewFullWatchlistButton": "ሙሉ የክትትል ዝርዝር ይመልከቱ"
   },
   "ReportsPage": {
     "pageTitle": "የዋጋ ንረት ሪፖርቶች",
@@ -126,7 +150,27 @@
       "priceAfter": "በኋላ፦ {after}",
       "reporterComment": "የሪፖርት አድራጊ አስተያየት",
       "businessName": "የንግድ ስም፦ {name}",
-      "item": "ዕቃ፦ {item}"
+      "item": "ዕቃ፦ {item}",
+      "addedToDatabase": "ይህ ሪፖርት ለግምገማ ወደ ዳታቤዛችን ተጨምሯል",
+      "reportTitle": "የሪፖርት ርዕስ",
+      "description": "መግለጫ",
+      "reportedBy": "ሪፖርት ያደረገው {name}",
+      "anonymous": "ስም አልባ",
+      "on": "በ {date}",
+      "reportTypes": {
+        "price_gouging": "የዋጋ ንረት",
+        "price_gouging_desc": "ከመጠን ያለፈ የዋጋ ጭማሪ",
+        "no_receipt": "ደረሰኝ የለም",
+        "no_receipt_desc": "ለግዢው ደረሰኝ አልተሰጠም",
+        "suspicious_activity": "አጠራጣሪ እንቅስቃሴ",
+        "suspicious_activity_desc": "ያልተለመደ ወይም አሳሳቢ ባህሪ",
+        "unauthorized_charges": "ያልተፈቀዱ ክፍያዎች",
+        "unauthorized_charges_desc": "ያለፈቃድ የተደረጉ ክፍያዎች",
+        "false_advertising": "ሐሰተኛ ማስታወቂያ",
+        "false_advertising_desc": "አሳሳች የምርት መግለጫ",
+        "hidden_fees": "የተደበቁ ክፍያዎች",
+        "hidden_fees_desc": "ያልተገለጹ ተጨማሪ ክፍያዎች"
+      }
     },
     "reportDetails": {
       "modalTitle": "የሪፖርት ዝርዝሮች",

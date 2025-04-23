@@ -19,6 +19,9 @@ export interface Report {
   created_at?: string;
   user_id?: string;
   category: string;
+  image_url?: string;
+  photo_url?: string;
+  imageUrl?: string; // Added for frontend display
 }
 
 // Submit a new report

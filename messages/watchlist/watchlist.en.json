@@ -1,9 +1,9 @@
 {
-  "title": "Consumer Watchlist",
-  "description": "Monitor businesses with suspicious activities, missing receipts, counterfeit products, and other consumer protection concerns",
+  "title": "Businesses to Watch",
+  "description": "Monitor businesses with suspicious activities, high risk scores, and recent reports",
   "search": {
     "label": "Search Businesses",
-    "placeholder": "Search by name, category, location, or issue details..."
+    "placeholder": "Search by name, location, or address..."
   },
   "filter": {
     "label": "Filter by Issue Type"
@@ -14,7 +14,11 @@
     "counterfeit": "Counterfeit Products",
     "no_receipt": "No Receipts",
     "misrepresentation": "Misrepresentation",
-    "unauthorized_repairs": "Unauthorized Repairs"
+    "unauthorized_repairs": "Unauthorized Repairs",
+    "high_risk": "High Risk",
+    "trending": "Trending",
+    "recent": "Recently Reported",
+    "unknown": "Unknown Issue"
   },
   "resultsCount": "Showing {count} businesses on watchlist",
   "alertLevels": {
@@ -22,18 +26,33 @@
     "medium": "Medium",
     "low": "Low"
   },
+  "risk": "Risk",
+  "whyListed": "Why it's listed",
+  "reasonText": {
+    "highRisk": "High risk business with a scam score of",
+    "trending": "Trending with increased report activity in the last 7 days",
+    "recent": "Recently reported by consumers"
+  },
   "businessDetails": {
     "reportedIssues": "Reported Issues",
     "details": "Details",
     "reports": "reports",
-    "lastReported": "Last reported: {date}"
+    "lastReported": "Last reported: {date}",
+    "customerReports": "Customer Reports",
+    "unnamedReport": "Unnamed Report",
+    "reportedBy": "Reported by",
+    "noReports": "No reports found for this business"
   },
   "actions": {
     "viewBusiness": "View Business",
     "reportBusiness": "Report a Business"
   },
-  "noResults": {
-    "title": "No businesses found",
-    "description": "No businesses match your current search filters."
-  }
+  "noResults": "No businesses match your current search criteria",
+  "loading": "Loading businesses...",
+  "errors": {
+    "title": "Error Loading Data",
+    "loadFailed": "Failed to load businesses. Please try again later."
+  },
+  "viewDetails": "View Details",
+  "scamScore": "Scam Score"
 }

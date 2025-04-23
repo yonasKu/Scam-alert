@@ -7,9 +7,9 @@
   "filterByReportType": "በሪፖርት አይነት አጣራ",
   "scamScoreExplanation": "የማጭበርበር ውጤት ማብራሪያ",
   "riskLevels": {
-    "lowRisk": "1-3.9: ዝቅተኛ ስጋት",
-    "moderateRisk": "4-6.9: መካከለኛ ስጋት",
-    "highRisk": "7-10: ከፍተኛ ስጋት"
+    "lowRisk": "1-2.9: ዝቅተኛ ስጋት",
+    "moderateRisk": "3-5.9: መካከለኛ ስጋት",
+    "highRisk": "6-10: ከፍተኛ ስጋት"
   },
   "tableHeaders": {
     "businessName": "የንግድ ድርጅት ስም",
@@ -29,8 +29,27 @@
     "unauthorized_business": "ያልተፈቀደ ንግድ",
     "false_advertising": "ሐሰተኛ ማስታወቂያ",
     "hidden_fees": "የተደበቁ ክፍያዎች",
+    "unauthorized_charges": "ያልተፈቀዱ ክፍያዎች",
     "other": "ሌሎች ጉዳዮች"
   },
+  "charts": {
+    "scoreDistribution": "የውጤት ብዛት",
+    "scamScoreDistribution": "የንግድ እድምቶች በማጠለይ ውጤት ብዛት",
+    "locationDistribution": "የቦታ ብዛት",
+    "businessesByLocation": "በቦታ መሰረት የንግድ እድምቶች ብዛት"
+  },
   "noBusinessesFound": "ከፍለጋዎ መስፈርት ጋር የሚዛመዱ ንግድ ድርጅቶች አልተገኙም",
-  "viewDetails": "ዝርዝሮችን ይመልከቱ"
+  "viewDetails": "ዝርዝሮችን ይመልከቱ",
+  "loading": "ንግድ ድርጅቶችን በመጫን ላይ...",
+  "errorTitle": "ንግድ ድርጅቶችን በመጫን ላይ ስህተት",
+  "tryAgain": "እንደገና ሞክር",
+  "noReportsYet": "ሪፖርቶች ገና የሉም",
+  "modalContent": {
+    "commonReportTypes": "የተለመዱ ሪፖርት አይነቶች",
+    "reports": "ሪፖርቶች",
+    "loadingReports": "ሪፖርቶችን በመጫን ላይ...",
+    "noReportsFound": "ለዚህ ንግድ ድርጅት ሪፖርቶች አልተገኙም",
+    "unnamedReport": "ስም የለዌው ሪፖርት",
+    "business": "ንግድ ድርጅት"
+  }
 }

@@ -245,7 +245,7 @@ export default function AboutPage() {
                   <h3 style={{
                     fontSize: "1.25rem",
                     fontWeight: "600"
-                  }}>Community Reporting</h3>
+                  }}>{t("howItWorks.communityReporting.title")}</h3>
                 </div>
                 <p style={{
                   lineHeight: "1.7",
@@ -287,7 +287,7 @@ export default function AboutPage() {
                   <h3 style={{
                     fontSize: "1.25rem",
                     fontWeight: "600"
-                  }}>Data Analysis & Scoring</h3>
+                  }}>{t("howItWorks.dataAnalysis.title")}</h3>
                 </div>
                 <p style={{
                   lineHeight: "1.7",
@@ -329,7 +329,7 @@ export default function AboutPage() {
                   <h3 style={{
                     fontSize: "1.25rem",
                     fontWeight: "600"
-                  }}>Community Action</h3>
+                  }}>{t("howItWorks.communityAction.title")}</h3>
                 </div>
                 <p style={{
                   lineHeight: "1.7",
@@ -392,7 +392,7 @@ export default function AboutPage() {
                 fontSize: "1.125rem",
                 fontWeight: "600",
                 marginBottom: "0.75rem"
-              }}>Transparency</h3>
+              }}>{t("coreValues.transparency.title")}</h3>
               <p style={{
                 fontSize: "0.9375rem",
                 lineHeight: "1.6",
@@ -412,7 +412,7 @@ export default function AboutPage() {
                 fontSize: "1.125rem",
                 fontWeight: "600",
                 marginBottom: "0.75rem"
-              }}>Fairness</h3>
+              }}>{t("coreValues.fairness.title")}</h3>
               <p style={{
                 fontSize: "0.9375rem",
                 lineHeight: "1.6",
@@ -432,7 +432,7 @@ export default function AboutPage() {
                 fontSize: "1.125rem",
                 fontWeight: "600",
                 marginBottom: "0.75rem"
-              }}>Community</h3>
+              }}>{t("coreValues.community.title")}</h3>
               <p style={{
                 fontSize: "0.9375rem",
                 lineHeight: "1.6",
@@ -452,7 +452,7 @@ export default function AboutPage() {
                 fontSize: "1.125rem",
                 fontWeight: "600",
                 marginBottom: "0.75rem"
-              }}>Accountability</h3>
+              }}>{t("coreValues.accountability.title")}</h3>
               <p style={{
                 fontSize: "0.9375rem",
                 lineHeight: "1.6",
@@ -613,10 +613,10 @@ export default function AboutPage() {
                   </svg>
                   {t("contact.email.title")}
                 </h3>
-                <a href="mailto:contact@scamwatch.example.com" style={{
+                <a href="mailto:contact@yonijonahphineas0@gmail.com" style={{
                   color: "hsl(var(--primary))",
                   textDecoration: "none"
-                }}>contact@scamwatch.example.com</a>
+                }}>contact@yonijonahphineas0@gmail.com</a>
               </div>
               
               <div>
@@ -633,7 +633,7 @@ export default function AboutPage() {
                   </svg>
                   {t("contact.phone.title")}
                 </h3>
-                <span>{t("contact.phone.value")}</span>
+                {/* <span>{t("contact.phone.value")}</span> */}
               </div>
               
               <div>

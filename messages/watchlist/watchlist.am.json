@@ -1,9 +1,9 @@
 {
-  "title": "የሸማቾች ክትትል ዝርዝር",
-  "description": "ጥርጣሬ የሚፈጥሩ እንቅስቃሴዎች፣ ደረሰኞች የማይሰጡ፣ የተቀለበሱ ምርቶች እና ሌሎች የሸማቾች ጥበቃ ስጋቶች ያሉባቸውን ንግድ ድርጅቶች ይቆጣጠሩ",
+  "title": "ለክትትል የተመዘገቡ ንግድ ድርጅቶች",
+  "description": "ጥርጣሬ የሚፈጥሩ እንቅስቃሴዎች፣ ከፍተኛ ስጋት ያለባቸው እና በቅርብ ጊዜ የተዘገቡ ንግድ ድርጅቶችን ይቆጣጠሩ",
   "search": {
     "label": "ንግድ ድርጅቶችን ይፈልጉ",
-    "placeholder": "በስም፣ በምድብ፣ በአድራሻ፣ ወይም በችግር ዝርዝር ይፈልጉ..."
+    "placeholder": "በስም፣ በአድራሻ፣ ወይም በቦታ ይፈልጉ..."
   },
   "filter": {
     "label": "በችግር አይነት አጣራ"
@@ -14,7 +14,11 @@
     "counterfeit": "የተቀለበሱ ምርቶች",
     "no_receipt": "ደረሰኞች አለመስጠት",
     "misrepresentation": "ሐሰተኛ ማቅረብ",
-    "unauthorized_repairs": "ያልተፈቀዱ ጥገናዎች"
+    "unauthorized_repairs": "ያልተፈቀዱ ጥገናዎች",
+    "high_risk": "ከፍተኛ ስጋት",
+    "trending": "እየጨመሩ ያሉ",
+    "recent": "በቅርብ ጊዜ የተዘገቡ",
+    "unknown": "ያልታወቀ ችግር"
   },
   "resultsCount": "በክትትል ዝርዝር ላይ {count} ንግድ ድርጅቶች እየታዩ ነው",
   "alertLevels": {
@@ -22,18 +26,33 @@
     "medium": "መካከለኛ",
     "low": "ዝቅተኛ"
   },
+  "risk": "ስጋት",
+  "whyListed": "ለምን እንደተዘረዘረ",
+  "reasonText": {
+    "highRisk": "ከፍተኛ ስጋት ያለበት ንግድ ድርጅት በማጭበርበር ደረጃ",
+    "trending": "ባለፉት 7 ቀናት ውስጥ ሪፖርቶች በከፍተኛ ደረጃ እየጨመሩ ስለሄዱ",
+    "recent": "በቅርብ ጊዜ በተጠቃሚዎች የተዘገበ"
+  },
   "businessDetails": {
     "reportedIssues": "የተዘገቡ ችግሮች",
     "details": "ዝርዝሮች",
     "reports": "ሪፖርቶች",
-    "lastReported": "የመጨረሻ ሪፖርት የተደረገው: {date}"
+    "lastReported": "የመጨረሻ ሪፖርት የተደረገው: {date}",
+    "customerReports": "የደንበኞች ሪፖርቶች",
+    "unnamedReport": "ስም የሌለው ሪፖርት",
+    "reportedBy": "ሪፖርት ያደረገው",
+    "noReports": "ለዚህ ንግድ ድርጅት ምንም ሪፖርቶች አልተገኙም"
   },
   "actions": {
     "viewBusiness": "ንግድ ድርጅቱን ይመልከቱ",
     "reportBusiness": "ንግድ ድርጅት ሪፖርት አድርግ"
   },
-  "noResults": {
-    "title": "ምንም ንግድ ድርጅቶች አልተገኙም",
-    "description": "ከአሁኑ የፍለጋ ማጣሪያዎች ጋር የሚዛመዱ ንግድ ድርጅቶች የሉም።"
-  }
+  "noResults": "ከአሁኑ የፍለጋ መስፈርት ጋር የሚዛመዱ ንግድ ድርጅቶች የሉም",
+  "loading": "ንግድ ድርጅቶችን በመጫን ላይ...",
+  "errors": {
+    "title": "ውሂብ መጫን አልተቻለም",
+    "loadFailed": "ንግድ ድርጅቶችን መጫን አልተቻለም። እባክዎን ቆይተው ይሞክሩ።"
+  },
+  "viewDetails": "ዝርዝር አሳይ",
+  "scamScore": "የማጭበርበር ደረጃ"
 }

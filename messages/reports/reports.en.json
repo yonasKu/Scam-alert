@@ -25,7 +25,27 @@
     "priceAfter": "After: {after}",
     "reporterComment": "Reporter Comment",
     "businessName": "Business Name: {name}",
-    "item": "Item: {item}"
+    "item": "Item: {item}",
+    "addedToDatabase": "This report has been added to our database for review",
+    "reportTitle": "Report Title",
+    "description": "Description",
+    "reportedBy": "Reported by {name}",
+    "anonymous": "Anonymous",
+    "on": "on {date}",
+    "reportTypes": {
+      "price_gouging": "Price Gouging",
+      "price_gouging_desc": "Excessive price increase",
+      "no_receipt": "No Receipt",
+      "no_receipt_desc": "No receipt provided for purchase",
+      "suspicious_activity": "Suspicious Activity",
+      "suspicious_activity_desc": "Unusual or concerning behavior",
+      "unauthorized_charges": "Unauthorized Charges",
+      "unauthorized_charges_desc": "Charges without permission",
+      "false_advertising": "False Advertising",
+      "false_advertising_desc": "Misleading product description",
+      "hidden_fees": "Hidden Fees",
+      "hidden_fees_desc": "Undisclosed additional charges"
+    }
   },
   "reportDetails": {
     "modalTitle": "Report Details",
@@ -47,5 +67,9 @@
   "receiptIssue": "Receipt Issue",
   "suspiciousActivityLabel": "Suspicious Activity",
   "unauthorizedIssue": "Unauthorized Issue",
-  "verified": "Verified"
+  "verified": "Verified",
+  "totalReports": "Total Reports",
+  "uniqueBusinesses": "Unique Businesses",
+  "resultsTitle": "Report Results",
+  "resultsCount": "{count} reports found"
 }

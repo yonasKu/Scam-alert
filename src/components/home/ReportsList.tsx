@@ -36,9 +36,15 @@ type ReportsListProps = {
 };
 
 import { useTranslations } from 'next-intl';
+import { usePathname } from 'next/navigation';
 
 export default function ReportsList({ reports }: ReportsListProps) {
   const t = useTranslations('ReportsList');
+  const pathname = usePathname();
+  
+  // Extract locale from path
+  const locale = pathname.split('/')[1] || 'en';
+  
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   
   const openReportDetails = (report: Report) => {
@@ -105,8 +111,8 @@ export default function ReportsList({ reports }: ReportsListProps) {
 
         <div style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
-          gap: "2rem",
+          gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+          gap: "2.5rem",
           maxWidth: "1400px",
           margin: "0 auto"
         }}>
@@ -116,22 +122,30 @@ export default function ReportsList({ reports }: ReportsListProps) {
               flexDirection: "column",
               height: "100%",
               overflow: "hidden",
-              transition: "transform 0.2s, box-shadow 0.2s",
-              cursor: "pointer"
+              transition: "all 0.3s ease",
+              cursor: "pointer",
+              borderRadius: "1rem",
+              border: "1px solid hsla(var(--border)/0.8)",
+              boxShadow: "0 4px 14px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.05)"
             }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = "translateY(-5px)";
-                e.currentTarget.style.boxShadow = "0 12px 20px rgba(0,0,0,0.1)";
+                e.currentTarget.style.boxShadow = "0 16px 30px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.06)";
+                e.currentTarget.style.borderColor = "hsla(var(--primary)/0.3)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "";
+                e.currentTarget.style.boxShadow = "0 4px 14px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.05)";
+                e.currentTarget.style.borderColor = "hsla(var(--border)/0.8)";
               }}
             >
               <div style={{
-                height: "200px",
+                height: "220px",
                 width: "100%",
-                position: "relative"
+                position: "relative",
+                overflow: "hidden",
+                borderTopLeftRadius: "0.75rem",
+                borderTopRightRadius: "0.75rem"
               }}>
                 <ImageWithFallback
                   src={report.imageUrl}
@@ -145,18 +159,20 @@ export default function ReportsList({ reports }: ReportsListProps) {
                   position: "absolute",
                   top: "1rem",
                   right: "1rem",
-                  backgroundColor: "hsla(var(--primary) / 0.9)",
+                  backgroundColor: "hsla(var(--primary) / 0.95)",
                   color: "white",
                   borderRadius: "9999px",
-                  padding: "0.35rem 0.75rem",
+                  padding: "0.4rem 0.85rem",
                   fontSize: "0.75rem",
-                  fontWeight: "600"
+                  fontWeight: "600",
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.15)",
+                  backdropFilter: "blur(4px)"
                 }}>
                   {report.category}
                 </div>
               </div>
 
-              <CardHeader>
+              <CardHeader style={{ padding: "1.25rem 1.5rem 0.75rem" }}>
                 <div style={{
                   marginBottom: "0.5rem"
                 }}>
@@ -166,19 +182,28 @@ export default function ReportsList({ reports }: ReportsListProps) {
                     justifyContent: "space-between",
                     marginBottom: "0.5rem"
                   }}>
-                    <CardTitle style={{ fontSize: "1.125rem", fontFamily: "var(--font-heading)" }}>
+                    <CardTitle style={{ 
+                      fontSize: "1.25rem", 
+                      fontFamily: "var(--font-heading)",
+                      fontWeight: "700",
+                      letterSpacing: "-0.01em",
+                      color: "hsl(var(--foreground))"
+                    }}>
                       {report.businessName}
                     </CardTitle>
                     <div style={{
-                      backgroundColor: "hsla(var(--destructive) / 0.1)",
+                      backgroundColor: "hsla(var(--destructive) / 0.12)",
                       color: "hsl(var(--destructive))",
                       borderRadius: "9999px",
-                      fontSize: "0.875rem",
-                      fontWeight: "600",
-                      padding: "0.25rem 0.75rem",
+                      fontSize: "0.75rem",
+                      fontWeight: "700",
+                      padding: "0.3rem 0.8rem",
                       display: "flex",
                       alignItems: "center",
-                      gap: "0.25rem"
+                      gap: "0.25rem",
+                      letterSpacing: "0.02em",
+                      textTransform: "uppercase",
+                      boxShadow: "0 1px 2px hsla(var(--destructive)/0.1)"
                     }}>
                       <span>{t('reportedBadge')}</span>
                     </div>
@@ -212,89 +237,122 @@ export default function ReportsList({ reports }: ReportsListProps) {
                   </div>
                 </div>
 
-                <CardDescription style={{ lineHeight: "1.4", fontWeight: "500", color: "hsl(var(--foreground))" }}>
+                <CardDescription style={{ 
+                  lineHeight: "1.5", 
+                  fontWeight: "500", 
+                  color: "hsl(var(--foreground))",
+                  fontSize: "1rem",
+                  marginTop: "0.5rem"
+                }}>
                   {report.title}
                 </CardDescription>
               </CardHeader>
 
               <CardContent style={{
-                padding: "0 1.5rem",
+                padding: "0.5rem 1.5rem 1.25rem",
                 flexGrow: 1
               }}>
                 <div style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  padding: "0.75rem 1rem",
-                  backgroundColor: "hsla(var(--muted) / 0.3)",
-                  borderRadius: "0.5rem",
-                  marginBottom: "1.25rem"
+                  padding: "1rem 1.25rem",
+                  background: "linear-gradient(to right, hsla(var(--muted)/0.15), hsla(var(--muted)/0.25))",
+                  borderRadius: "0.75rem",
+                  marginBottom: "1.5rem",
+                  border: "1px solid hsla(var(--border)/0.5)",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.03)"
                 }}>
                   <div>
                     <div style={{
-                      fontSize: "0.75rem",
+                      fontSize: "0.8rem",
                       color: "hsl(var(--foreground))",
-                      marginBottom: "0.25rem"
+                      marginBottom: "0.35rem",
+                      fontWeight: "500",
+                      opacity: "0.85"
                     }}>Original Price</div>
                     <div style={{
-                      fontWeight: "bold",
-                      color: "hsl(var(--foreground))"
+                      fontWeight: "700",
+                      color: "hsl(var(--foreground))",
+                      fontSize: "1.1rem"
                     }}>{report.price.before}</div>
                   </div>
 
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
+                  <div style={{
+                    width: "32px",
+                    height: "32px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "hsla(var(--muted)/0.3)",
+                    borderRadius: "50%"
+                  }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </div>
 
                   <div>
                     <div style={{
-                      fontSize: "0.75rem",
+                      fontSize: "0.8rem",
                       color: "hsl(var(--destructive))",
-                      marginBottom: "0.25rem"
+                      marginBottom: "0.35rem",
+                      fontWeight: "500"
                     }}>Gouged Price</div>
                     <div style={{
-                      fontWeight: "bold",
-                      color: "hsl(var(--destructive))"
+                      fontWeight: "700",
+                      color: "hsl(var(--destructive))",
+                      fontSize: "1.1rem"
                     }}>{report.price.after}</div>
                   </div>
                 </div>
 
                 <div style={{
-                  fontSize: "0.875rem",
+                  fontSize: "0.95rem",
                   color: "hsl(var(--muted-foreground))",
-                  lineHeight: "1.5",
+                  lineHeight: "1.6",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   display: "-webkit-box",
                   WebkitLineClamp: "3",
-                  WebkitBoxOrient: "vertical"
+                  WebkitBoxOrient: "vertical",
+                  backgroundColor: "hsla(var(--muted)/0.08)",
+                  padding: "1rem",
+                  borderRadius: "0.6rem",
+                  borderLeft: "3px solid hsla(var(--primary)/0.5)",
+                  fontStyle: "italic"
                 }}>
                   {report.reporterComment}
                 </div>
               </CardContent>
 
-              <CardFooter>
+              <CardFooter style={{ padding: "1rem 1.5rem 1.5rem" }}>
                 <div style={{ display: "flex", width: "100%" }}>
                   <Button 
                     size="sm" 
                     style={{ 
                       width: "100%",
-                      fontWeight: "500",
+                      fontWeight: "600",
                       backgroundColor: "hsl(var(--primary))",
                       color: "white",
                       transition: "all 0.2s ease",
-                      padding: "0.6rem 0.8rem",
-                      boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                      padding: "0.7rem 1rem",
+                      boxShadow: "0 2px 10px rgba(0,0,0,0.1), 0 0 0 2px hsla(var(--primary)/0.2)",
                       border: "none",
-                      cursor: "pointer"
+                      cursor: "pointer",
+                      borderRadius: "0.6rem",
+                      fontSize: "0.95rem",
+                      letterSpacing: "0.01em"
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.15)";
+                      e.currentTarget.style.boxShadow = "0 6px 15px rgba(0,0,0,0.15), 0 0 0 2.5px hsla(var(--primary)/0.4)";
+                      e.currentTarget.style.backgroundColor = "hsl(var(--primary-darker, var(--primary)))";
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = "";
-                      e.currentTarget.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)";
+                      e.currentTarget.style.boxShadow = "0 2px 10px rgba(0,0,0,0.1), 0 0 0 2px hsla(var(--primary)/0.2)";
+                      e.currentTarget.style.backgroundColor = "";
                     }}
                     onClick={() => openReportDetails(report)}
                   >
@@ -313,10 +371,10 @@ export default function ReportsList({ reports }: ReportsListProps) {
           gap: "1rem"
         }}>
           <Button asChild>
-            <Link href="/reports">View All Reports</Link>
+            <Link href={`/${locale}/reports`}>{t('viewAllReports')}</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/reports/new">Submit New Report</Link>
+            <Link href={`/${locale}/reports/new`}>{t('submitNewReport')}</Link>
           </Button>
         </div>
       </div>

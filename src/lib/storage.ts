@@ -1,11 +1,9 @@
 import { supabase } from './supabase';
 
 /**
- * Uploads an image to Supabase storage
+ * Uploads an image and returns a data URL
  * @param file The file to upload
- * @param bucket The bucket name to upload to
- * @param folder Optional folder path within the bucket
- * @returns The public URL of the uploaded file or null if upload failed
+ * @returns A data URL representation of the image
  */
 export async function uploadImage(
   file: File,
@@ -13,48 +11,27 @@ export async function uploadImage(
   folder: string = 'report-photos'
 ): Promise<string | null> {
   try {
-    // Generate a unique file name
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = folder ? `${folder}/${fileName}` : fileName;
-    
-    // Check if the bucket exists
-    const { data: buckets } = await supabase.storage.listBuckets();
-    const bucketExists = buckets?.some(b => b.name === bucket);
-    
-    // Create the bucket if it doesn't exist
-    if (!bucketExists) {
-      const { error } = await supabase.storage.createBucket(bucket, {
-        public: true,
-        fileSizeLimit: 5242880, // 5MB
-      });
-      
-      if (error) {
-        console.error("Error creating bucket:", error.message);
-        return null;
-      }
-    }
-    
-    // Upload the file
-    const { error: uploadError } = await supabase.storage
-      .from(bucket)
-      .upload(filePath, file);
-      
-    if (uploadError) {
-      console.error("Error uploading file:", uploadError.message);
-      return null;
-    }
-    
-    // Get the public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(filePath);
-      
-    return publicUrl;
+    // Always use data URL encoding for simplicity and to avoid permission issues
+    // This stores the image directly in the database instead of as a separate file
+    return convertToDataURL(file);
   } catch (error) {
-    console.error("Storage operation failed:", error);
+    console.error("Image conversion failed:", error);
     return null;
   }
+}
+
+/**
+ * Converts a file to a data URL
+ * @param file The file to convert
+ * @returns A Promise that resolves to the data URL
+ */
+async function convertToDataURL(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 /**

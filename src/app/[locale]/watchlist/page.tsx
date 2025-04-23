@@ -1,10 +1,16 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { getBusinessesToWatch, Business, fetchReportTypesByBusiness, ReportTypeCount, fetchReportsByBusiness } from "@/lib/api/businesses";
+import { Report } from "@/lib/api/reports";
+import { WatchlistBusinessCard } from "@/components/watchlist/watchlist-business-card";
+import { WatchlistBusinessModal } from "@/components/watchlist/watchlist-business-modal";
+
+// Extended business type with report types
+interface EnhancedBusiness extends Business {
+  reportTypes?: ReportTypeCount[];
+}
 
 export default function WatchlistPage() {
   const params = useParams();
@@ -12,7 +18,17 @@ export default function WatchlistPage() {
   const [translations, setTranslations] = useState<Record<string, any>>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedIssueType, setSelectedIssueType] = useState("all");
+  const [isLoading, setIsLoading] = useState(true);
+  const [businesses, setBusinesses] = useState<EnhancedBusiness[]>([]);
+  const [error, setError] = useState("");
+  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
   
+  // Modal state
+  const [selectedBusiness, setSelectedBusiness] = useState<EnhancedBusiness | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [businessReports, setBusinessReports] = useState<Report[]>([]);
+  const [isLoadingReports, setIsLoadingReports] = useState(false);
+
   // Load translations
   useEffect(() => {
     const loadTranslations = async () => {
@@ -27,17 +43,54 @@ export default function WatchlistPage() {
         setTranslations(fallbackModule.default);
       }
     };
-    
+
     loadTranslations();
   }, [locale]);
-  
+
+  // Load businesses to watch
+  useEffect(() => {
+    const loadBusinessesToWatch = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getBusinessesToWatch(20);
+
+        // Enhance businesses with report types
+        const enhancedBusinesses = await Promise.all(
+          data.map(async (business) => {
+            try {
+              // Get report types for this business
+              const reportTypes = await fetchReportTypesByBusiness(business.name);
+              return {
+                ...business,
+                reportTypes
+              };
+            } catch (err) {
+              console.error(`Error fetching report types for ${business.name}:`, err);
+              return business;
+            }
+          })
+        );
+
+        setBusinesses(enhancedBusinesses);
+        setError("");
+      } catch (err) {
+        console.error("Error fetching businesses to watch:", err);
+        setError(t("errors.loadFailed"));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadBusinessesToWatch();
+  }, []);
+
   // Translation helper function
   const t = (key: string, params?: Record<string, string | number>): string => {
     if (!translations) return key; // Return the key if translations are not loaded yet
-    
+
     const keys = key.split('.');
     let value: any = translations;
-    
+
     for (const k of keys) {
       if (value && typeof value === 'object' && k in value) {
         value = value[k];
@@ -45,14 +98,14 @@ export default function WatchlistPage() {
         return key; // Return the key if translation is not found
       }
     }
-    
+
     if (typeof value === 'string' && params) {
       // Replace parameters in the translation string
       return Object.entries(params).reduce((str, [param, val]) => {
         return str.replace(`{${param}}`, String(val));
       }, value);
     }
-    
+
     return typeof value === 'string' ? value : key;
   };
 
@@ -65,196 +118,236 @@ export default function WatchlistPage() {
     { id: "misrepresentation", label: t("issueTypes.misrepresentation") },
     { id: "unauthorized_repairs", label: t("issueTypes.unauthorized_repairs") }
   ];
-  
-  // Mock data for suspicious businesses with consumer protection issues
-  const watchlistBusinessesData = [
-    {
-      id: 1,
-      name: "FastTech Gadgets",
-      category: "Electronics",
-      location: "Downtown Tech District",
-      reportCount: 23,
-      lastReported: "April 12, 2025",
-      issueTypes: [
-        { type: "suspicious_charges", count: 15 },
-        { type: "counterfeit", count: 8 }
-      ],
-      details: "Multiple customers reported unauthorized charges after shopping here. Some products appear to be counterfeit versions of name brands.",
-      alertLevel: "High"
-    },
-    {
-      id: 2,
-      name: "Discount Pharmacy",
-      category: "Health",
-      location: "Medical Plaza, South End",
-      reportCount: 15,
-      lastReported: "April 10, 2025",
-      issueTypes: [
-        { type: "counterfeit", count: 12 },
-        { type: "misrepresentation", count: 3 }
-      ],
-      details: "Concerns about authenticity of some prescription medications. Product packaging appears different from official versions.",
-      alertLevel: "Medium"
-    },
-    {
-      id: 3,
-      name: "Metro Convenience",
-      category: "Convenience Store",
-      location: "Central Station",
-      reportCount: 18,
-      lastReported: "April 8, 2025",
-      issueTypes: [
-        { type: "no_receipt", count: 14 },
-        { type: "suspicious_charges", count: 4 }
-      ],
-      details: "Consistently refuses to provide receipts for purchases. Multiple reports of price discrepancies between shelf and register.",
-      alertLevel: "High"
-    },
-    {
-      id: 4,
-      name: "Luxury Home Goods",
-      category: "Home Furnishings",
-      location: "Waterfront Shopping Center",
-      reportCount: 9,
-      lastReported: "April 5, 2025",
-      issueTypes: [
-        { type: "misrepresentation", count: 9 }
-      ],
-      details: "Products advertised as genuine designer brands but appear to be replicas. Materials don't match descriptions.",
-      alertLevel: "Medium"
-    },
-    {
-      id: 5,
-      name: "Express Auto Service",
-      category: "Automotive",
-      location: "Industrial District",
-      reportCount: 12,
-      lastReported: "April 3, 2025",
-      issueTypes: [
-        { type: "unauthorized_repairs", count: 9 },
-        { type: "misrepresentation", count: 3 }
-      ],
-      details: "Performs unnecessary repairs and charges for services not rendered. Consistent pattern of overcharging.",
-      alertLevel: "Medium"
-    },
-    {
-      id: 6,
-      name: "Budget Electronics",
-      category: "Electronics",
-      location: "Outlet Mall, East Wing",
-      reportCount: 14,
-      lastReported: "March 28, 2025",
-      issueTypes: [
-        { type: "counterfeit", count: 10 },
-        { type: "no_receipt", count: 4 }
-      ],
-      details: "Selling refurbished items as new. Receipts often not provided, or only handwritten.",
-      alertLevel: "High"
-    },
-    {
-      id: 7,
-      name: "QuickCash ATM Services",
-      category: "Financial",
-      location: "Various Locations",
-      reportCount: 11,
-      lastReported: "March 25, 2025",
-      issueTypes: [
-        { type: "suspicious_charges", count: 11 }
-      ],
-      details: "ATM skimming devices detected. Multiple reports of fraudulent transactions after using these machines.",
-      alertLevel: "High"
-    },
-    {
-      id: 8,
-      name: "Bargain Furniture Outlet",
-      category: "Furniture",
-      location: "Warehouse District",
-      reportCount: 7,
-      lastReported: "March 22, 2025",
-      issueTypes: [
-        { type: "misrepresentation", count: 5 },
-        { type: "no_receipt", count: 2 }
-      ],
-      details: "Furniture materials don't match descriptions. Items advertised as solid wood are actually veneer.",
-      alertLevel: "Medium"
-    },
-    {
-      id: 9,
-      name: "Quick Fix Phone Repair",
-      category: "Electronics Repair",
-      location: "Main Street Shopping Center",
-      reportCount: 10,
-      lastReported: "March 20, 2025",
-      issueTypes: [
-        { type: "unauthorized_repairs", count: 8 },
-        { type: "counterfeit", count: 2 }
-      ],
-      details: "Replaces genuine parts with aftermarket components without customer consent. Uses counterfeit parts.",
-      alertLevel: "Medium"
-    },
-    {
-      id: 10,
-      name: "Flash Jewelry",
-      category: "Jewelry",
-      location: "Fashion Mall, 2nd Floor",
-      reportCount: 16,
-      lastReported: "March 18, 2025",
-      issueTypes: [
-        { type: "misrepresentation", count: 12 },
-        { type: "counterfeit", count: 4 }
-      ],
-      details: "Sells gold-plated items as solid gold. Gemstones are often synthetic but sold as natural.",
-      alertLevel: "High"
-    }
-  ];
 
-  // Use useMemo to memoize the watchlistBusinesses array
-  const watchlistBusinesses = useMemo(() => watchlistBusinessesData, []);
-
-  // Filter and sort businesses
+  // Filter businesses based on search term and selected issue type
   const filteredBusinesses = useMemo(() => {
-    return watchlistBusinesses.filter(business => {
-      // Filter by search term
-      const matchesSearch = business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         business.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         business.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         business.details.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      // Filter by issue type
-      const matchesIssueType = selectedIssueType === "all" || 
-                            business.issueTypes.some(issue => issue.type === selectedIssueType);
-                           
-      return matchesSearch && matchesIssueType;
-    }).sort((a, b) => {
-      // Sort by alert level (High > Medium > Low) and then by report count
-      if (a.alertLevel !== b.alertLevel) {
-        if (a.alertLevel === "High") return -1;
-        if (b.alertLevel === "High") return 1;
-        if (a.alertLevel === "Medium") return -1;
-        if (b.alertLevel === "Medium") return 1;
-        return 0;
-      }
-      
-      return b.reportCount - a.reportCount;
+    if (!businesses || businesses.length === 0) return [];
+
+    return businesses.filter((business: EnhancedBusiness) => {
+      // Apply search filter
+      const matchesSearch = searchTerm === "" ||
+        business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (business.address && business.address.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (business.city && business.city.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      // Skip issue type filtering since we've moved to the new model without issue types
+      // Instead, we'll use the isHighRisk, isRecent, isTrending flags
+
+      return matchesSearch;
     });
-  }, [watchlistBusinesses, searchTerm, selectedIssueType]);
+  }, [businesses, searchTerm]);
+
+  // Calculate alert level based on scam score like in test-businesses page
+  const getAlertLevel = (business: EnhancedBusiness): string => {
+    if (business.scam_score && business.scam_score >= 7) return "High";
+    if (business.scam_score && business.scam_score >= 4) return "Medium";
+    return "Low";
+  };
+
+  // Get border color based on alert level
+  const getBorderColor = (alertLevel: string) => {
+    switch (alertLevel) {
+      case "High": return "hsl(var(--destructive))";
+      case "Medium": return "hsl(var(--warning))";
+      case "Low": return "hsl(var(--success))";
+      default: return "hsl(var(--muted))";
+    }
+  };
+
+  // Get alert badge style
+  const getAlertBadgeStyle = (alertLevel: string) => {
+    switch (alertLevel) {
+      case "High":
+        return {
+          backgroundColor: "hsla(var(--destructive) / 0.1)",
+          color: "hsl(var(--destructive))"
+        };
+      case "Medium":
+        return {
+          backgroundColor: "hsla(var(--warning) / 0.1)",
+          color: "hsl(var(--warning))"
+        };
+      case "Low":
+        return {
+          backgroundColor: "hsla(var(--success) / 0.1)",
+          color: "hsl(var(--success))"
+        };
+      default:
+        return {
+          backgroundColor: "hsla(var(--muted) / 0.1)",
+          color: "hsl(var(--muted-foreground))"
+        };
+    }
+  };
+
+  // Map report type to icon and color
+  const getReportTypeIcon = (reportType: string) => {
+    // Define color and icon path based on report type
+    let color = "muted";
+    let iconContent = null;
+
+    switch (reportType) {
+      case "suspicious_charges":
+      case "price_gouging":
+        color = "destructive";
+        iconContent = (
+          <>
+            <rect width="20" height="14" x="2" y="5" rx="2" />
+            <line x1="2" x2="22" y1="10" y2="10" />
+          </>
+        );
+        break;
+      case "counterfeit":
+      case "fake_products":
+        color = "warning";
+        iconContent = (
+          <>
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+            <path d="M3 6h18" />
+            <path d="M16 10a4 4 0 0 1-8 0" />
+          </>
+        );
+        break;
+      case "no_receipt":
+      case "receipt_issues":
+        color = "amber";
+        iconContent = (
+          <>
+            <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" />
+            <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
+            <path d="M12 17h.01" />
+          </>
+        );
+        break;
+      case "misrepresentation":
+      case "false_advertising":
+        color = "orange";
+        iconContent = (
+          <>
+            <path d="M9.2 7.2a6 6 0 0 1 8.5 8.5M7.9 7.9a.5.5 0 0 1 0 .7L7.1 9.5M5.5 5.5A11 11 0 1 0 19 19" />
+            <path d="m8.3 14.3-1 1.7c-.5.9.1 2 1.2 2 .3 0 .6-.1.8-.2L12 16l2.7 1.7c.2.2.5.3.8.3 1 0 1.7-1.1 1.2-2l-1-1.7c-.2-.3-.2-.7 0-1l1-1.7c.5-.9-.1-2-1.2-2-.3 0-.6.1-.8.2L12 10l-2.7-1.7a1.3 1.3 0 0 0-.8-.2c-1 0-1.7 1.1-1.2 2l1 1.7c.2.3.2.7 0 1Z" />
+          </>
+        );
+        break;
+      case "unauthorized_repairs":
+      case "repair_issues":
+        color = "blue";
+        iconContent = (
+          <>
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+          </>
+        );
+        break;
+      default:
+        iconContent = (
+          <>
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <path d="M12 17h.01" />
+          </>
+        );
+    }
+
+    // Return the icon wrapped in a styled container
+    return (
+      <div style={{
+        width: '1.5rem',
+        height: '1.5rem',
+        borderRadius: '50%',
+        backgroundColor: `hsla(var(--${color}) / 0.1)`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: `hsl(var(--${color}))`
+      }}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          {iconContent}
+        </svg>
+      </div>
+    );
+  };
+
+  // Get issue description based on flags
+  const getIssueDescription = (business: EnhancedBusiness): string => {
+    const issues = [];
+    if (business.isHighRisk) issues.push(t("issueTypes.high_risk"));
+    if (business.isTrending) issues.push(t("issueTypes.trending"));
+    if (business.isRecent) issues.push(t("issueTypes.recent"));
+
+    return issues.length > 0 ? issues.join(", ") : t("issueTypes.unknown");
+  };
+
+  // Get reason text for why this business is listed
+  const getReasonText = (business: EnhancedBusiness): string => {
+    if (business.isHighRisk) {
+      return `${t("reasonText.highRisk")} ${business.scam_score?.toFixed(1) || 'N/A'}.`;
+    } else if (business.isTrending) {
+      return t("reasonText.trending");
+    } else if (business.isRecent) {
+      return t("reasonText.recent");
+    }
+    return "";
+  };
+
+  // Format the report type for display
+  const getReportTypeLabel = (reportType: string): string => {
+    // Try to get the translation from issueTypes
+    const translationKey = `issueTypes.${reportType.toLowerCase()}`;
+    const translation = t(translationKey);
+
+    // If we get back the key, it means there's no translation, so format manually
+    if (translation === translationKey) {
+      return reportType
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    }
+
+    return translation;
+  };
+
+  // Open modal with business details
+  const openModal = (business: EnhancedBusiness) => {
+    setSelectedBusiness(business);
+    setIsModalOpen(true);
+  };
+
+  // Close modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  // Load reports for the selected business
+  useEffect(() => {
+    const loadReports = async () => {
+      if (!selectedBusiness) return;
+
+      setIsLoadingReports(true);
+      try {
+        const reports = await fetchReportsByBusiness(selectedBusiness.id);
+        setBusinessReports(reports);
+      } catch (err) {
+        console.error("Error fetching reports:", err);
+      } finally {
+        setIsLoadingReports(false);
+      }
+    };
+
+    loadReports();
+  }, [selectedBusiness]);
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "hsl(var(--background))" }}>
-      {/* Header Section */}
-      <section style={{ 
-        backgroundColor: "hsla(var(--background) / 0.8)",
-        borderBottom: "1px solid hsla(var(--border) / 0.2)",
-        padding: "3rem 0 2rem"
-      }}>
-        <div className="container" style={{ padding: "0 1.5rem" }}>
-          <div style={{ 
-            display: "flex", 
-            flexDirection: "column", 
-            alignItems: "center", 
-            textAlign: "center",
-            maxWidth: "900px",
-            margin: "0 auto"
+    <>
+      <section style={{ padding: '2rem 0 4rem', backgroundColor: 'hsl(var(--background))' }}>
+        <div style={{ padding: '0 1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
+          {/* Updated header section to match home page */}
+          <div style={{
+            textAlign: 'center',
+            padding: '2rem',
+            borderRadius: '0.75rem',
+            backgroundColor: 'hsla(var(--background) / 0.8)',
+            borderBottom: '1px solid hsla(var(--border) / 0.2)',
+            marginBottom: '2rem'
           }}>
             <h1 style={{
               fontSize: "clamp(2rem, 4vw, 3rem)",
@@ -268,410 +361,152 @@ export default function WatchlistPage() {
             }}>
               {t("title")}
             </h1>
-            
-            <div style={{ 
-              fontSize: "1.125rem",
-              color: "hsl(var(--muted-foreground))",
-              marginBottom: "2rem",
-              maxWidth: "700px",
+            <p style={{
+              fontSize: '1.125rem',
+              color: 'hsl(var(--muted-foreground))',
+              maxWidth: '700px',
+              margin: '0 auto',
               lineHeight: 1.6
             }}>
               {t("description")}
-            </div>
+            </p>
           </div>
-        </div>
-      </section>
 
-      {/* Main Content */}
-      <section style={{ padding: "2rem 0 4rem" }}>
-        <div className="container" style={{ padding: "0 1.5rem", maxWidth: "1200px", margin: "0 auto" }}>
-          {/* Search and Filter Tools */}
-          <Card style={{ marginBottom: "2rem" }}>
-            <CardContent style={{ padding: "1.5rem" }}>
-              <div style={{ 
-                display: "flex", 
-                flexDirection: "column", 
-                gap: "1.5rem" 
-              }}>
-                {/* Search Bar */}
+          {/* Search section */}
+          <div style={{ marginBottom: '2rem' }}>
+            <div style={{ padding: '1.5rem', backgroundColor: 'hsl(var(--card))' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                {/* Search input */}
                 <div>
-                  <label htmlFor="search" style={{ 
-                    display: "block", 
-                    marginBottom: "0.5rem", 
-                    fontSize: "0.875rem", 
-                    fontWeight: "500" 
-                  }}>
+                  <label
+                    htmlFor="search"
+                    style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
+                      fontSize: '0.875rem',
+                      fontWeight: 500
+                    }}
+                  >
                     {t("search.label")}
                   </label>
                   <input
-                    type="text"
                     id="search"
+                    type="text"
                     placeholder={t("search.placeholder")}
                     value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     style={{
-                      width: "100%",
-                      padding: "0.75rem 1rem",
-                      borderRadius: "0.375rem",
-                      border: "1px solid hsla(var(--border) / 0.5)",
-                      backgroundColor: "hsla(var(--background) / 0.5)",
-                      fontSize: "0.9375rem"
+                      width: '100%',
+                      padding: '0.75rem 1rem',
+                      borderRadius: '0.375rem',
+                      border: '1px solid hsla(var(--border) / 0.5)',
+                      backgroundColor: 'hsla(var(--background) / 0.5)',
+                      fontSize: '0.9375rem'
                     }}
                   />
                 </div>
-
-                {/* Issue Type Filters */}
-                <div>
-                  <label style={{ 
-                    display: "block", 
-                    marginBottom: "0.5rem", 
-                    fontSize: "0.875rem", 
-                    fontWeight: "500" 
-                  }}>
-                    {t("filter.label")}
-                  </label>
-                  <div style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: "0.5rem"
-                  }}>
-                    {issueTypes.map(type => (
-                      <button
-                        key={type.id}
-                        onClick={() => setSelectedIssueType(type.id)}
-                        style={{
-                          padding: "0.5rem 0.75rem",
-                          borderRadius: "0.375rem",
-                          border: "1px solid",
-                          borderColor: selectedIssueType === type.id 
-                            ? "hsl(var(--warning))" 
-                            : "hsla(var(--border) / 0.5)",
-                          backgroundColor: selectedIssueType === type.id 
-                            ? "hsla(var(--warning) / 0.1)" 
-                            : "transparent",
-                          color: selectedIssueType === type.id 
-                            ? "hsl(var(--warning))" 
-                            : "hsl(var(--foreground))",
-                          fontWeight: "500",
-                          fontSize: "0.875rem",
-                          cursor: "pointer",
-                          transition: "all 0.2s"
-                        }}
-                      >
-                        {type.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Results Count */}
-          <div style={{ 
-            marginBottom: "1.5rem", 
-            color: "hsl(var(--muted-foreground))",
-            fontSize: "0.9375rem"
-          }}>
-            {t("resultsCount", { count: filteredBusinesses.length })}
+            </div>
           </div>
 
-          {/* Business Cards */}
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
-            gap: "1.5rem"
-          }}>
-            {filteredBusinesses.map(business => (
-              <Card key={business.id} style={{
-                overflow: "hidden",
-                display: "flex",
-                flexDirection: "column",
-                height: "100%",
-                borderLeft: business.alertLevel === "High" 
-                  ? "4px solid hsl(var(--destructive))"
-                  : business.alertLevel === "Medium"
-                    ? "4px solid hsl(var(--warning))"
-                    : "4px solid hsl(var(--muted))",
-                transition: "transform 0.2s, box-shadow 0.2s"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-5px)";
-                e.currentTarget.style.boxShadow = "0 12px 20px rgba(0,0,0,0.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "";
-              }}>
-                <CardHeader style={{ padding: "1.5rem 1.5rem 0.75rem" }}>
-                  <div style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    justifyContent: "space-between",
-                    marginBottom: "0.75rem"
-                  }}>
-                    <div>
-                      <CardTitle style={{ fontSize: "1.25rem", marginBottom: "0.5rem", fontFamily: "var(--font-heading)" }}>
-                        {business.name}
-                      </CardTitle>
-                      {/* Removed CardDescription and replaced with regular divs to avoid p > div nesting */}
-                      <div style={{ fontSize: "0.9375rem", color: "hsl(var(--muted-foreground))" }}>
-                        <span style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.5rem",
-                          marginBottom: "0.5rem"
-                        }}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-                            <circle cx="12" cy="10" r="3"/>
-                          </svg>
-                          {business.location}
-                        </span>
-                        <span style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.5rem"
-                        }}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
-                            <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
-                            <path d="M10 10.3c.2-.4.5-.8.9-1a2.1 2.1 0 0 1 2.6.4c.3.4.4.8.3 1.3-.1.5-.4.9-.9 1.1l-1 .2c-.6.1-1.1.5-1.4 1-.3.5-.3 1.1-.2 1.7"/>
-                            <path d="M12 18h.01"/>
-                          </svg>
-                          {business.category}
-                        </span>
-                      </div>
-                    </div>
-                    <div style={{
-                      backgroundColor: business.alertLevel === "High"
-                        ? "hsla(var(--destructive) / 0.1)"
-                        : business.alertLevel === "Medium"
-                          ? "hsla(var(--warning) / 0.1)"
-                          : "hsla(var(--muted) / 0.1)",
-                      color: business.alertLevel === "High"
-                        ? "hsl(var(--destructive))"
-                        : business.alertLevel === "Medium"
-                          ? "hsl(var(--warning))"
-                          : "hsl(var(--muted-foreground))",
-                      borderRadius: "9999px",
-                      padding: "0.375rem 0.75rem",
-                      fontSize: "0.8125rem",
-                      fontWeight: "bold",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.375rem"
-                    }}>
-                      {business.alertLevel === "High" && (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                          <line x1="12" y1="9" x2="12" y2="13"/>
-                          <line x1="12" y1="17" x2="12.01" y2="17"/>
-                        </svg>
-                      )}
-                      {t(`alertLevels.${business.alertLevel.toLowerCase()}`)}
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent style={{ padding: "0.75rem 1.5rem 1.5rem", flexGrow: 1 }}>
-                  {/* Issue Types */}
-                  <div style={{ marginBottom: "1.25rem" }}>
-                    <h4 style={{ 
-                      fontSize: "0.875rem", 
-                      fontWeight: "600", 
-                      marginBottom: "0.75rem",
-                      color: "hsl(var(--muted-foreground))"
-                    }}>
-                      {t("businessDetails.reportedIssues")}
-                    </h4>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                      {business.issueTypes.map((issue, index) => {
-                        // Get issue label from the issue types array
-                        const issueLabel = issueTypes.find(t => t.id === issue.type)?.label || issue.type;
-                        
-                        // Choose icon and color based on issue type
-                        let iconColor = "hsl(var(--foreground))";
-                        let Icon: React.FC = () => null;
-                        
-                        switch (issue.type) {
-                          case "suspicious_charges":
-                            iconColor = "hsl(var(--destructive))";
-                            Icon = function SuspiciousChargesIcon() {
-                              return (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <rect width="20" height="14" x="2" y="5" rx="2"/>
-                                  <line x1="2" x2="22" y1="10" y2="10"/>
-                                </svg>
-                              );
-                            };
-                            break;
-                          case "counterfeit":
-                            iconColor = "hsl(var(--warning))";
-                            Icon = function CounterfeitIcon() {
-                              return (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
-                                  <path d="M5 13a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v4a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-4a2 2 0 0 1 2-2h1a2 2 0 0 0 2-2v-2a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1"/>
-                                </svg>
-                              );
-                            };
-                            break;
-                          case "no_receipt":
-                            iconColor = "hsl(var(--amber))";
-                            Icon = function NoReceiptIcon() {
-                              return (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <rect width="18" height="18" x="3" y="3" rx="2" />
-                                  <line x1="9" x2="15" y1="9" y2="9" />
-                                  <line x1="9" x2="15" y1="15" y2="15" />
-                                </svg>
-                              );
-                            };
-                            break;
-                          case "misrepresentation":
-                            iconColor = "hsl(var(--orange))";
-                            Icon = function MisrepresentationIcon() {
-                              return (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="m3 8 4-4 4 4"/>
-                                  <path d="M11 12H3"/>
-                                  <path d="m9 16 4 4 4-4"/>
-                                  <path d="M20 12h-8"/>
-                                </svg>
-                              );
-                            };
-                            break;
-                          case "unauthorized_repairs":
-                            iconColor = "hsl(var(--muted))";
-                            Icon = function UnauthorizedRepairsIcon() {
-                              return (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-                                </svg>
-                              );
-                            };
-                            break;
-                          default:
-                            iconColor = "hsl(var(--muted-foreground))";
-                            Icon = function DefaultIcon() {
-                              return (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <circle cx="12" cy="12" r="10"/>
-                                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                                  <path d="M12 17h.01"/>
-                                </svg>
-                              );
-                            };
-                        }
-                        
-                        return (
-                          <div key={index} style={{
-                            backgroundColor: "hsla(var(--muted) / 0.2)",
-                            borderRadius: "0.375rem",
-                            padding: "0.375rem 0.75rem",
-                            fontSize: "0.8125rem",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.5rem"
-                          }}>
-                            <span style={{ color: iconColor }}>
-                              <Icon />
-                            </span>
-                            <span>
-                              {issueLabel} ({issue.count})
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  
-                  {/* Business Details */}
-                  <div>
-                    <h4 style={{ 
-                      fontSize: "0.875rem", 
-                      fontWeight: "600", 
-                      marginBottom: "0.5rem",
-                      color: "hsl(var(--muted-foreground))"
-                    }}>
-                      {t("businessDetails.details")}
-                    </h4>
-                    <div style={{ 
-                      fontSize: "0.9375rem", 
-                      lineHeight: 1.6,
-                      color: "hsl(var(--foreground))"
-                    }}>
-                      {business.details}
-                    </div>
-                  </div>
-                </CardContent>
-                
-                <CardFooter style={{ 
-                  padding: "1rem 1.5rem",
-                  borderTop: "1px solid hsla(var(--border) / 0.5)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between"
-                }}>
-                  <div style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.75rem",
-                    fontSize: "0.875rem",
-                    color: "hsl(var(--muted-foreground))"
-                  }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M5 13a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v4a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-4a2 2 0 0 1 2-2h1a2 2 0 0 0 2-2v-2a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1"/>
-                      </svg>
-                      <span>{business.reportCount} {t("businessDetails.reports")}</span>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polyline points="12 6 12 12 16 14"/>
-                      </svg>
-                      <span>{t("businessDetails.lastReported", { date: business.lastReported })}</span>
-                    </div>
-                  </div>
-                  
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/businesses/${business.id}`}>{t("actions.viewBusiness")}</Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-          
-          {filteredBusinesses.length === 0 && (
+          {isLoading ? (
             <div style={{
-              padding: "3rem 2rem",
-              textAlign: "center",
-              backgroundColor: "hsla(var(--muted) / 0.1)",
-              borderRadius: "0.75rem",
-              color: "hsl(var(--muted-foreground))"
+              padding: '3rem 0',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 1rem" }}>
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-              <h3 style={{ fontSize: "1.25rem", marginBottom: "0.5rem", fontWeight: "600" }}>{t("noResults.title")}</h3>
-              <div>{t("noResults.description")}</div>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                border: '3px solid hsla(var(--border) / 0.3)',
+                borderTopColor: 'hsl(var(--primary))',
+                animation: 'spin 1s linear infinite',
+                marginBottom: '1rem'
+              }} />
+              <p style={{ fontSize: '1.125rem', color: 'hsl(var(--muted-foreground))' }}>
+                {t("loading")}
+              </p>
+              <style jsx>{`
+                @keyframes spin {
+                  to { transform: rotate(360deg); }
+                }
+              `}</style>
+            </div>
+          ) : error ? (
+            <div style={{
+              padding: '2rem',
+              backgroundColor: 'hsla(var(--destructive) / 0.1)',
+              color: 'hsl(var(--destructive))',
+              borderRadius: '0.5rem',
+              marginBottom: '2rem'
+            }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                {t("errors.title")}
+              </h3>
+              <p>{error}</p>
+            </div>
+          ) : (
+            <div>
+              {filteredBusinesses.length > 0 ? (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+                  gap: '1.5rem'
+                }}>
+                  {filteredBusinesses.map((business: EnhancedBusiness) => (
+                    <WatchlistBusinessCard
+                      key={business.id}
+                      business={business}
+                      hoveredCardId={hoveredCardId}
+                      setHoveredCardId={setHoveredCardId}
+                      t={t}
+                      getAlertLevel={getAlertLevel}
+                      getBorderColor={getBorderColor}
+                      getAlertBadgeStyle={getAlertBadgeStyle}
+                      getReportTypeIcon={getReportTypeIcon}
+                      getReportTypeLabel={getReportTypeLabel}
+                      getReasonText={getReasonText}
+                      getIssueDescription={getIssueDescription}
+                      openModal={openModal}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div style={{
+                  padding: '3rem 2rem',
+                  textAlign: 'center',
+                  backgroundColor: 'hsla(var(--muted) / 0.1)',
+                  borderRadius: '0.75rem',
+                  color: 'hsl(var(--muted-foreground))'
+                }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 1rem' }}>
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                    <path d="M12 17h.01" />
+                  </svg>
+                  <p>{t("noResults")}</p>
+                </div>
+              )}
             </div>
           )}
-          
-          {/* Actions */}
-          <div style={{ marginTop: "3rem", textAlign: "center" }}>
-            <Button asChild>
-              <Link href="/reports/new">{t("actions.reportBusiness")}</Link>
-            </Button>
-          </div>
         </div>
       </section>
-    </div>
+
+      <WatchlistBusinessModal 
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        business={selectedBusiness}
+        reports={businessReports}
+        isLoading={isLoadingReports}
+        t={t}
+        getReportTypeIcon={getReportTypeIcon}
+        getReportTypeLabel={getReportTypeLabel}
+        getIssueDescription={getIssueDescription}
+      />
+    </>
   );
 }
