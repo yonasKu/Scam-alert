@@ -251,7 +251,7 @@ export default function ReportCard({ report, locale, translations }: ReportCardP
                 style={{
                   width: "100%",
                   height: "100%",
-                  objectFit: "contain"
+                  objectFit: "cover"
                 }}
               />
             ) : (
@@ -261,7 +261,9 @@ export default function ReportCard({ report, locale, translations }: ReportCardP
                 alt={report.business_name}
                 fill
                 style={{
-                  objectFit: "cover"
+                  objectFit: "cover",
+                  width: "100%",
+                  height: "100%"
                 }}
               />
             )

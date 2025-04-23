@@ -1,6 +1,21 @@
 "use client";
 
+import React from 'react';
+import { useState, useEffect } from 'react';
 import { Business } from "@/lib/api/businesses";
+import { useTranslations } from 'next-intl';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  Cell,
+  PieChart,
+  Pie,
+  Legend
+} from 'recharts';
 
 interface BusinessChartsProps {
   businessesData: Business[];
@@ -44,6 +59,38 @@ export default function BusinessCharts({ businessesData, t }: BusinessChartsProp
     color: range.color
   }));
 
+  // Get location counts using the most accurate location data available
+  const locationCounts: Record<string, number> = {};
+  businessesData.forEach(business => {
+    // Prioritize city over state, and use location as a fallback
+    let location = business.city || business.state || business.address || 'Unknown';
+    
+    // Extract city name from location if it contains multiple parts
+    if (location.includes(',')) {
+      location = location.split(',')[0].trim();
+    }
+    
+    // Group similar locations (e.g., 'Addis' and 'Addis Ababa' should be counted together)
+    if (location.toLowerCase().includes('addis')) {
+      location = 'Addis Ababa';
+    } else if (location.toLowerCase().includes('dire')) {
+      location = 'Dire Dawa';
+    } else if (location.toLowerCase().includes('bahir')) {
+      location = 'Bahir Dar';
+    }
+    
+    locationCounts[location] = (locationCounts[location] || 0) + 1;
+  });
+
+  // Convert to array format for chart
+  const pieData: LocationCount[] = Object.entries(locationCounts)
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => (b.value as number) - (a.value as number)) // Sort by count desc
+    .slice(0, 5); // Only top 5 locations
+
+  // Location colors
+  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+
   return (
     <div style={{ 
       display: "flex", 
@@ -78,31 +125,18 @@ export default function BusinessCharts({ businessesData, t }: BusinessChartsProp
         </p>
         
         <div style={{ width: '100%', height: 250 }}>
-          {/* Direct Recharts implementation */}
-          {(() => {
-            const BarChart = require('recharts').BarChart;
-            const Bar = require('recharts').Bar;
-            const XAxis = require('recharts').XAxis;
-            const YAxis = require('recharts').YAxis;
-            const Tooltip = require('recharts').Tooltip;
-            const ResponsiveContainer = require('recharts').ResponsiveContainer;
-            const Cell = require('recharts').Cell;
-
-            return (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <XAxis dataKey="label" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#8884d8">
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            );
-          })()}
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData}>
+              <XAxis dataKey="label" />
+              <YAxis />
+              <RechartsTooltip />
+              <Bar dataKey="count" fill="#8884d8">
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
@@ -132,58 +166,30 @@ export default function BusinessCharts({ businessesData, t }: BusinessChartsProp
         </p>
         
         <div style={{ width: '100%', height: 250 }}>
-          {/* Direct Recharts implementation */}
-          {(() => {
-            // Get location counts
-            const locationCounts: Record<string, number> = {};
-            businessesData.forEach(business => {
-              const state = business.state || 'Unknown';
-              locationCounts[state] = (locationCounts[state] || 0) + 1;
-            });
-
-            // Convert to array format for chart
-            const pieData: LocationCount[] = Object.entries(locationCounts)
-              .map(([name, value]) => ({ name, value }))
-              .sort((a, b) => (b.value as number) - (a.value as number)) // Sort by count desc
-              .slice(0, 5); // Only top 5 locations
-
-            // Location colors
-            const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
-
-            const PieChart = require('recharts').PieChart;
-            const Pie = require('recharts').Pie;
-            const Cell = require('recharts').Cell;
-            const Legend = require('recharts').Legend;
-            const Tooltip = require('recharts').Tooltip;
-            const ResponsiveContainer = require('recharts').ResponsiveContainer;
-
-            return (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    innerRadius={40}
-                    fill="#8884d8"
-                    dataKey="value"
-                    nameKey="name"
-                    label={({ name, percent }: { name: string; percent: number }) => 
-                      `${name}: ${(percent * 100).toFixed(0)}%`
-                    }
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => [`${value} businesses`, 'Count']} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            );
-          })()}
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={80}
+                innerRadius={40}
+                fill="#8884d8"
+                dataKey="value"
+                nameKey="name"
+                label={({ name, percent }: { name: string; percent: number }) => 
+                  `${name}: ${(percent * 100).toFixed(0)}%`
+                }
+              >
+                {pieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <RechartsTooltip formatter={(value: number) => [`${value} businesses`, 'Count']} />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
       </div>
     </div>

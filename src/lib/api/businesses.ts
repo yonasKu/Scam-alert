@@ -1,5 +1,8 @@
 import { supabase } from '../supabase';
-import { Report, ReportType } from './reports';
+import { Report, ReportType, fetchReportsByBusiness } from './reports';
+
+// Re-export the fetchReportsByBusiness function from reports.ts
+export { fetchReportsByBusiness };
 
 // Type definitions
 export interface Business {
@@ -15,6 +18,8 @@ export interface Business {
   isHighRisk?: boolean;
   isRecent?: boolean;
   isTrending?: boolean;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface CommonScam {
@@ -406,7 +411,7 @@ export async function getTrendingBusinesses(limit = 10, timeframeDays = 7) {
     
     // Map the returned data to match the Business interface
     // The SQL function returns business_id, but we need id
-    return (data || []).map(item => ({
+    return (data || []).map((item: any) => ({
       id: item.business_id,
       name: item.name,
       address: item.address,
@@ -445,7 +450,7 @@ export async function getBusinessesToWatch(limit = 10): Promise<Business[]> {
         business.isHighRisk = highRisk.some((b: Business) => b.id === business.id);
         business.isRecent = recent.some((b: Business) => b.id === business.id);
         business.isTrending = trending.some((b: Business) => b.id === business.id);
-        businessMap.set(business.id, business);
+        businessMap.set(business.id || '', business);
       }
     });
     
@@ -476,6 +481,185 @@ export async function getBusinessesToWatch(limit = 10): Promise<Business[]> {
     return combined.slice(0, limit);
   } catch (error) {
     console.error('Error getting businesses to watch:', error);
+    return [];
+  }
+}
+
+// Ethiopian cities with coordinates - used for geocoding and fallbacks
+const ethiopianCities = [
+  { name: 'Addis Ababa', lat: 9.0222, lng: 38.7468 },
+  { name: 'Dire Dawa', lat: 9.5931, lng: 41.8661 },
+  { name: 'Mekelle', lat: 13.4967, lng: 39.4697 },
+  { name: 'Gondar', lat: 12.6030, lng: 37.4521 },
+  { name: 'Bahir Dar', lat: 11.5742, lng: 37.3614 },
+  { name: 'Hawassa', lat: 7.0504, lng: 38.4955 },
+  { name: 'Jimma', lat: 7.6780, lng: 36.8344 },
+  { name: 'Dessie', lat: 11.1333, lng: 39.6333 },
+  { name: 'Jijiga', lat: 9.3500, lng: 42.8000 },
+  { name: 'Shashamane', lat: 7.2000, lng: 38.6000 },
+  { name: 'Adama', lat: 8.5400, lng: 39.2700 },
+  { name: 'Bishoftu', lat: 8.7500, lng: 38.9800 },
+  { name: 'Debre Birhan', lat: 9.6800, lng: 39.5300 },
+  { name: 'Debre Markos', lat: 10.3500, lng: 37.7300 },
+  { name: 'Debre Tabor', lat: 11.8500, lng: 38.0200 },
+  { name: 'Harar', lat: 9.3100, lng: 42.1200 },
+  { name: 'Nekemte', lat: 9.0900, lng: 36.5500 },
+  { name: 'Asosa', lat: 10.0700, lng: 34.5300 },
+  { name: 'Gambela', lat: 8.2500, lng: 34.5900 },
+  { name: 'Asella', lat: 7.9500, lng: 39.1400 }
+];
+
+// Simple geocoding function that matches location text to known Ethiopian cities
+function geocodeLocationText(locationText: string): { lat: number, lng: number } | null {
+  if (!locationText) return null;
+  
+  // Normalize location text for comparison
+  const normalizedLocation = locationText.toLowerCase().trim();
+  
+  // Check for exact matches or partial matches in city names
+  for (const city of ethiopianCities) {
+    if (
+      normalizedLocation.includes(city.name.toLowerCase()) ||
+      city.name.toLowerCase().includes(normalizedLocation)
+    ) {
+      // Add a small random offset to prevent markers from stacking exactly
+      const latOffset = (Math.random() - 0.5) * 0.02;
+      const lngOffset = (Math.random() - 0.5) * 0.02;
+      
+      return {
+        lat: city.lat + latOffset,
+        lng: city.lng + lngOffset
+      };
+    }
+  }
+  
+  // Default to Addis Ababa with a random offset if no match is found
+  const latOffset = (Math.random() - 0.5) * 0.05;
+  const lngOffset = (Math.random() - 0.5) * 0.05;
+  
+  return {
+    lat: 9.0222 + latOffset,
+    lng: 38.7468 + lngOffset
+  };
+}
+
+// Get businesses with location data for map display
+export async function getBusinessesWithLocationData(limit = 20): Promise<Business[]> {
+  try {
+    // Get businesses with the highest report counts
+    const { data: businessesFromDb, error } = await supabase
+      .from('businesses')
+      .select('*')
+      .order('report_count', { ascending: false })
+      .limit(limit);
+    
+    if (error) {
+      console.error('Error fetching businesses with location data:', error.message);
+      return [];
+    }
+    
+    // Get reports to extract location data
+    const { data: reports, error: reportsError } = await supabase
+      .from('reports')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50); // Get more reports to increase chance of finding location data
+    
+    if (reportsError) {
+      console.error('Error fetching reports for location data:', reportsError.message);
+      return [];
+    }
+    
+    // Create a map to store unique businesses with location data
+    const businessMap = new Map<string, Business>();
+    
+    // Process businesses from database and add geocoded coordinates
+    businessesFromDb?.forEach(business => {
+      // Try to geocode the business location from city or address
+      const locationText = business.city || business.address || business.state || '';
+      const coordinates = geocodeLocationText(locationText);
+      
+      if (coordinates) {
+        if (coordinates) {
+          businessMap.set(business.id, {
+            ...business,
+            latitude: coordinates.lat,
+            longitude: coordinates.lng
+          });
+        }
+      }
+    });
+    
+    // Process reports to extract location data for businesses not already in the map
+    reports?.forEach(report => {
+      // Skip if we already have this business
+      if (!report.business_name || businessMap.has(report.business_id || '')) return;
+      
+      // Try to geocode the report location
+      const locationText = report.location || report.city || '';
+      const coordinates = geocodeLocationText(locationText);
+      
+      if (coordinates) {
+        // Create a business object from report data
+        const business: Business = {
+          id: report.business_id || report.id,
+          name: report.business_name,
+          address: report.location || '',
+          city: report.city || 'Addis Ababa',
+          state: 'Ethiopia',
+          zip: '',
+          report_count: 1,
+          latitude: coordinates.lat,
+          longitude: coordinates.lng,
+          scam_score: 5 // Default medium score
+        };
+        
+        businessMap.set(business.id || '', business);
+      }
+    });
+    
+    // If we don't have enough businesses, get high risk businesses
+    if (businessMap.size < limit) {
+      // Get high risk businesses to supplement
+      const highRiskBusinesses = await getHighRiskBusinesses(limit);
+      
+      // Add location data to high risk businesses
+      highRiskBusinesses.forEach((business, index) => {
+        if (businessMap.has(business.id)) return;
+        
+        // Try to geocode the business location
+        const locationText = business.city || business.address || business.state || '';
+        let coordinates;
+        
+        if (locationText) {
+          coordinates = geocodeLocationText(locationText);
+        } else {
+          // If no location text, assign a city from the list, cycling through them
+          const cityData = ethiopianCities[index % ethiopianCities.length];
+          coordinates = {
+            lat: cityData.lat + (Math.random() - 0.5) * 0.02,
+            lng: cityData.lng + (Math.random() - 0.5) * 0.02
+          };
+        }
+        
+        if (coordinates) {
+          businessMap.set(business.id, {
+            ...business,
+            latitude: coordinates.lat,
+            longitude: coordinates.lng
+          });
+        }
+      });
+    }
+    
+    // Convert map to array and sort by report count
+    const businessesWithLocation = Array.from(businessMap.values())
+      .sort((a, b) => (b.report_count || 0) - (a.report_count || 0))
+      .slice(0, limit);
+    
+    return businessesWithLocation;
+  } catch (error) {
+    console.error('Error in getBusinessesWithLocationData:', error);
     return [];
   }
 }

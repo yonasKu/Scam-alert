@@ -214,7 +214,7 @@ export default function ReportsPage() {
         report.category.toLowerCase().includes(englishCategory.toLowerCase()) ||
         (activeFilter === t('filterCategories.noReceipt') && report.report_type === "no_receipt") ||
         (activeFilter === t('filterCategories.suspiciousActivity') && report.report_type === "suspicious_activity") ||
-        (activeFilter === t('filterCategories.unauthorizedBusiness') && report.report_type === "unauthorized_business")
+        (activeFilter === t('filterCategories.unauthorizedBusiness') && report.report_type === "unauthorized_charges")
       );
     }
     
@@ -310,10 +310,8 @@ export default function ReportsPage() {
           <div style={{
             display: "flex",
             justifyContent: "center",
-            gap: "2rem",
             marginBottom: "2rem",
             width: "100%",
-            flexWrap: "wrap"
           }}>
             <div style={{
               display: "flex",
@@ -341,34 +339,6 @@ export default function ReportsPage() {
                 letterSpacing: "0.05em"
               }}>
                 {translations ? t('totalReports') : 'Total Reports'}
-              </div>
-            </div>
-            <div style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              padding: "1.5rem",
-              backgroundColor: "hsla(var(--muted) / 0.05)",
-              borderRadius: "0.75rem",
-              minWidth: "180px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              border: "1px solid hsla(var(--border) / 0.1)"
-            }}>
-              <div style={{
-                fontSize: "2.5rem",
-                fontWeight: "bold",
-                color: "hsl(var(--primary))",
-                marginBottom: "0.5rem"
-              }}>
-                {animatedBusinessCount}
-              </div>
-              <div style={{
-                fontSize: "0.875rem",
-                color: "hsl(var(--muted-foreground))",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em"
-              }}>
-                {translations ? t('uniqueBusinesses') : 'Unique Businesses'}
               </div>
             </div>
           </div>

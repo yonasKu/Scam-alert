@@ -320,11 +320,12 @@ export default function WatchlistPage() {
   // Load reports for the selected business
   useEffect(() => {
     const loadReports = async () => {
-      if (!selectedBusiness) return;
+      if (!selectedBusiness || !selectedBusiness.id) return;
 
       setIsLoadingReports(true);
       try {
-        const reports = await fetchReportsByBusiness(selectedBusiness.id);
+        // Add type assertion to ensure id is treated as a string
+        const reports = await fetchReportsByBusiness(selectedBusiness.id as string);
         setBusinessReports(reports);
       } catch (err) {
         console.error("Error fetching reports:", err);

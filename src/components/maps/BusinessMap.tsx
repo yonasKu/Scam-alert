@@ -7,12 +7,14 @@ import L from 'leaflet';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { useTranslations } from 'next-intl';
+import { Business } from '@/types/business';
 
 // Fix Leaflet marker icon issue in Next.js
 const fixLeafletIcon = () => {
   // Leaflet's default icon assets are not compatible with Next.js by default
-  delete (L.Icon.Default.prototype as any)._getIconUrl;
+  delete (L.Icon.Default.prototype as { _getIconUrl?: () => string })._getIconUrl;
   
   L.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
@@ -21,9 +23,29 @@ const fixLeafletIcon = () => {
   });
 };
 
-// Custom icon for price gouging reports
-const priceGougingIcon = new L.Icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+// Custom icon for high risk businesses (red marker)
+const highRiskIcon = new L.Icon({
+  iconUrl: '/images/marker-red.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+  shadowSize: [41, 41]
+});
+
+// Custom icon for medium risk businesses (orange marker)
+const mediumRiskIcon = new L.Icon({
+  iconUrl: '/images/marker-orange.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+  shadowSize: [41, 41]
+});
+
+// Custom icon for low risk businesses (blue marker)
+const lowRiskIcon = new L.Icon({
+  iconUrl: '/images/marker-blue.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -33,11 +55,23 @@ const priceGougingIcon = new L.Icon({
 
 // Sample Ethiopian icon to distinguish sample locations
 const ethiopianIcon = new L.Icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  iconUrl: '/images/marker-green.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+  shadowSize: [41, 41]
+});
+
+// Fallback to default Leaflet icon if custom icons are not available
+// Create a default icon using the same pattern as the other icons
+const defaultIcon = new L.Icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
   shadowSize: [41, 41]
 });
 
@@ -61,7 +95,8 @@ const sampleBusinesses = [
       before: "50 ETB",
       after: "75 ETB"
     },
-    item: "Basic groceries"
+    item: "Basic groceries",
+    scam_score: 8
   },
   {
     id: 999002,
@@ -78,7 +113,8 @@ const sampleBusinesses = [
       before: "200 ETB",
       after: "350 ETB"
     },
-    item: "Electronics"
+    item: "Electronics",
+    scam_score: 5
   },
   {
     id: 999003,
@@ -95,28 +131,12 @@ const sampleBusinesses = [
       before: "300 ETB",
       after: "450 ETB"
     },
-    item: "Imported goods"
+    item: "Imported goods",
+    scam_score: 2
   }
 ];
 
-// Business type with required props
-type Business = {
-  id: number;
-  businessName: string;
-  title?: string;
-  description?: string;
-  location: string;
-  coordinates: {
-    lat: number;
-    lng: number;
-  };
-  category?: string;
-  price?: {
-    before: string;
-    after: string;
-  };
-  item?: string;
-};
+// Using the shared Business type from @/types/business
 
 // BusinessMap component props
 type BusinessMapProps = {
@@ -125,17 +145,7 @@ type BusinessMapProps = {
   showSampleLocations?: boolean;
   forceEthiopianCenter?: boolean;
   center?: [number, number];
-};
-
-// Dynamic imports for Map components to ensure they only load in the browser
-const MapComponents = () => {
-  // We need to return the components so they're only imported in the client
-  return {
-    MapContainer,
-    TileLayer,
-    Marker,
-    Popup
-  };
+  showPopup?: boolean;
 };
 
 export default function BusinessMap({ 
@@ -143,16 +153,17 @@ export default function BusinessMap({
   height = '500px', 
   showSampleLocations = true,
   forceEthiopianCenter = false,
-  center
+  center,
+  showPopup = true
 }: BusinessMapProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const [mapComponents, setMapComponents] = useState<any>(null);
   const router = useRouter();
+  const t = useTranslations('Map');
   
+  // Initialize map on the client side only
   useEffect(() => {
-    // Initialize Leaflet correctly on client side only
+    // Fix Leaflet icon issues
     fixLeafletIcon();
-    setMapComponents(MapComponents());
     setIsMounted(true);
     
     // Clean up function
@@ -162,21 +173,48 @@ export default function BusinessMap({
   }, []);
   
   // Calculate the center of the map based on all business coordinates
-  const calculateCenter = () => {
-    // ALWAYS center on Addis Ababa
-    return ADDIS_ABABA_CENTER;
+  const calculateCenter = (): [number, number] => {
+    // If no businesses or forced to use Ethiopian center, return Addis Ababa coordinates
+    if (businesses.length === 0 || forceEthiopianCenter) return ADDIS_ABABA_CENTER;
+    
+    // If a specific center is provided, use it
+    if (center) return center;
+    
+    // Otherwise calculate the center from all business coordinates
+    const validBusinesses = businesses.filter(b => b.coordinates && b.coordinates.lat && b.coordinates.lng);
+    
+    if (validBusinesses.length === 0) return ADDIS_ABABA_CENTER;
+    
+    // Use the first business's coordinates as the center (usually the most important one)
+    return [validBusinesses[0].coordinates.lat, validBusinesses[0].coordinates.lng];
   };
   
-  const viewBusinessDetails = (id: number) => {
-    // Don't navigate for sample businesses
-    if (id >= 999000 && id < 1000000) {
-      return;
+  // Function to determine which icon to use based on scam score
+  const getMarkerIcon = (scamScore?: number, business?: Business) => {
+    // Determine if this is a sample business (ID starts with 999)
+    const isSampleBusiness = typeof business?.id === 'number' && business.id >= 999000 && business.id < 1000000;
+    
+    if (isSampleBusiness) {
+      return ethiopianIcon;
     }
-    router.push(`/businesses/${id}`);
+    
+    if (!scamScore) return defaultIcon;
+    
+    if (scamScore >= 7) {
+      return highRiskIcon;
+    } else if (scamScore >= 4) {
+      return mediumRiskIcon;
+    } else {
+      return lowRiskIcon;
+    }
+  };
+  
+  const viewBusinessDetails = (id: string | number) => {
+    router.push(`/business/${id}`);
   };
   
   // Always render a placeholder first to avoid hydration issues
-  if (!isMounted || !mapComponents) {
+  if (!isMounted) {
     return (
       <div className="flex items-center justify-center w-full rounded-md bg-muted" style={{ height }}>
         <p className="text-muted-foreground">Loading map...</p>
@@ -184,29 +222,22 @@ export default function BusinessMap({
     );
   }
   
-  const mapCenter = calculateCenter();
-  const { MapContainer, TileLayer, Marker, Popup } = mapComponents;
-  
   // Create a combined list of businesses to display
   const displayBusinesses = [...businesses];
   
   // If specified, add the sample Ethiopian businesses
-  if (showSampleLocations) {
+  if (showSampleLocations && businesses.length < 3) {
     // Only add sample businesses if they don't already exist in the list
     const existingIds = new Set(businesses.map(b => b.id));
     const filteredSamples = sampleBusinesses.filter(b => !existingIds.has(b.id));
     displayBusinesses.push(...filteredSamples);
   }
-  
-  // Zoom level - closer zoom for Addis Ababa
-  const zoomLevel = 12;
-  
-  // Only create the actual map after the component is mounted
+
   return (
     <div className="w-full rounded-lg overflow-hidden" style={{ height }}>
       <MapContainer 
-        center={mapCenter}
-        zoom={zoomLevel} 
+        center={calculateCenter()}
+        zoom={12} 
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={false}
       >
@@ -216,65 +247,88 @@ export default function BusinessMap({
         />
         
         {displayBusinesses.map(business => {
-          const isSampleBusiness = business.id >= 999000 && business.id < 1000000;
+          // Determine if this is a sample business (ID starts with 999)
+          const isSampleBusiness = typeof business.id === 'number' && business.id >= 999000 && business.id < 1000000;
+          
           return (
+            // @ts-expect-error: Marker children type issue in @types/react-leaflet
             <Marker 
-              key={business.id}
-              position={[business.coordinates.lat, business.coordinates.lng] as [number, number]}
-              icon={isSampleBusiness ? ethiopianIcon : priceGougingIcon}
+              key={business.id.toString()}
+              position={[business.coordinates.lat, business.coordinates.lng]}
+              icon={getMarkerIcon(business.scam_score, business)}
             >
-              <Popup>
-                <div className="min-w-[250px]">
-                  <h3 className="text-base font-bold mb-2 flex items-center gap-2">
-                    {business.businessName}
-                    {isSampleBusiness && <Badge variant="outline" className="text-xs bg-muted font-normal">Sample</Badge>}
-                  </h3>
-                  
-                  {business.title && (
-                    <p className="text-sm mb-2 font-medium">
-                      {business.title}
-                    </p>
-                  )}
-                  
-                  <p className="text-sm mb-1 flex items-center gap-1">
-                    <span className="shrink-0">📍</span> 
-                    <span>{business.location}</span>
-                  </p>
-                  
-                  {business.category && (
-                    <p className="text-sm mb-1">
-                      Category: {business.category}
-                    </p>
-                  )}
-                  
-                  {business.price && (
-                    <Card className="mt-2 bg-red-50 border-red-100">
-                      <CardContent className="p-3">
-                        <div className="flex items-center justify-between">
-                          <div className="text-center">
-                            <p className="text-xs text-muted-foreground">Before</p>
-                            <p className="font-medium">{business.price.before}</p>
-                          </div>
-                          <div className="text-lg">→</div>
-                          <div className="text-center">
-                            <p className="text-xs text-muted-foreground">After</p>
-                            <p className="font-medium text-red-600">{business.price.after}</p>
-                          </div>
+              {showPopup ? (
+                <Popup>
+                  <div className="min-w-[250px]">
+                    <h3 className="text-base font-bold mb-2 flex items-center gap-2">
+                      {business.businessName}
+                      {isSampleBusiness && <Badge variant="outline" className="text-xs bg-muted font-normal">Sample</Badge>}
+                    </h3>
+                    
+                    {business.description && (
+                      <p className="text-sm mb-2">
+                        {business.description}
+                      </p>
+                    )}
+                    
+                    {business.scam_score && (
+                      <div className="mb-2">
+                        <p className="text-xs text-muted-foreground mb-1">{t('riskLevel')}:</p>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div 
+                            className={`h-2 rounded-full ${business.scam_score >= 7 ? 'bg-red-500' : business.scam_score >= 4 ? 'bg-orange-400' : 'bg-green-500'}`}
+                            style={{ width: `${Math.min(business.scam_score * 10, 100)}%` }}
+                          ></div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                  
-                  <Button 
-                    onClick={() => viewBusinessDetails(business.id)}
-                    className="w-full mt-3"
-                    variant="default"
-                    size="sm"
-                  >
-                    View Details
-                  </Button>
-                </div>
-              </Popup>
+                        <div className="flex justify-between text-xs mt-1">
+                          <span>{business.scam_score}/10</span>
+                          <span className={`font-medium ${business.scam_score >= 7 ? 'text-red-500' : business.scam_score >= 4 ? 'text-orange-400' : 'text-green-500'}`}>
+                            {business.scam_score >= 7 ? t('highRisk') : business.scam_score >= 4 ? t('mediumRisk') : t('lowRisk')}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <p className="text-sm mb-1 flex items-center gap-1">
+                      <span className="shrink-0">📍</span> 
+                      <span>{business.location}</span>
+                    </p>
+                    
+                    {business.category && (
+                      <p className="text-sm mb-1">
+                        {t('category')}: {business.category}
+                      </p>
+                    )}
+                    
+                    {business.price && (
+                      <Card className="mt-2 bg-red-50 border-red-100">
+                        <CardContent className="p-3">
+                          <div className="flex items-center justify-between">
+                            <div className="text-center">
+                              <p className="text-xs text-muted-foreground">{t('before')}</p>
+                              <p className="font-medium">{business.price.before}</p>
+                            </div>
+                            <div className="text-lg">→</div>
+                            <div className="text-center">
+                              <p className="text-xs text-muted-foreground">{t('after')}</p>
+                              <p className="font-medium text-red-600">{business.price.after}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    
+                    <Button 
+                      onClick={() => viewBusinessDetails(business.id)}
+                      className="w-full mt-3"
+                      variant="default"
+                      size="sm"
+                    >
+                      {t('viewDetails')}
+                    </Button>
+                  </div>
+                </Popup>
+              ) : null}
             </Marker>
           );
         })}
