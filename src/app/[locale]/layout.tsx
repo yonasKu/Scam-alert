@@ -35,15 +35,15 @@ export const metadata: Metadata = {
   description: "Community platform for reporting price gouging and overcharges",
 };
 
-type Props = {
+export default async function LocaleLayout({
+  children,
+  params,
+}: {
   children: React.ReactNode;
   params: { locale: string };
-};
-
-export default async function LocaleLayout({ children, params }: Props) {
-  // Extract the locale from params - need to await params in async functions
-  const resolvedParams = params instanceof Promise ? await params : params;
-  const { locale } = resolvedParams;
+}) {
+  // Extract the locale from params
+  const { locale } = params;
 
   // Validate that the incoming `locale` parameter is valid
   if (!locales.includes(locale)) notFound();

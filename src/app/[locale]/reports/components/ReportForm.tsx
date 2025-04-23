@@ -151,41 +151,49 @@ export function ReportForm({ t, windowWidth }: ReportFormProps) {
         }
       }
       
-      // Insert report data into Supabase
-      const { error: insertError, data: report } = await supabase
-        .from('reports')
-        .insert({
-          title: formData.title,
-          business_name: formData.businessName,
-          location: formData.location,
-          category: formData.category,
-          description: formData.description,
-          photo_url: photoUrl, // This will be either the Supabase URL or base64 string
-          reporter_contact: formData.contact,
-          report_type: formData.reportType,
-          price_before: formData.priceBefore || null,
-          price_after: formData.priceAfter || null,
-          receipt_issue: formData.receiptIssue || null,
-          suspicious_activity: formData.suspiciousActivity || null,
-          unauthorized_issue: formData.unauthorizedIssue || null,
-          item: formData.item || null,
-          created_at: new Date().toISOString()
-        })
-        .select();
-        
-      if (insertError) {
-        throw new Error(`Error inserting report: ${insertError.message}`);
+      // Prepare report data
+      const payload = {
+        title: formData.title,
+        business_name: formData.businessName,
+        location: formData.location,
+        category: formData.category,
+        description: formData.description,
+        photo_url: photoUrl,
+        reporter_contact: formData.contact,
+        report_type: formData.reportType,
+        price_before: formData.priceBefore || null,
+        price_after: formData.priceAfter || null,
+        receipt_issue: formData.receiptIssue || null,
+        suspicious_activity: formData.suspiciousActivity || null,
+        unauthorized_issue: formData.unauthorizedIssue || null,
+        item: formData.item || null,
+        created_at: new Date().toISOString(),
+      };
+
+      // POST to our backend API
+      const res = await fetch('/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.status === 429) {
+        setError(t('form.errors.dailyQuotaExceeded', { default: 'You have reached your daily report limit. Please try again tomorrow.' }));
+        setIsSubmitting(false);
+        return;
       }
-      
-      // Show success message
-      console.log('Report submitted successfully:', report[0]);
-      setSubmittedReport(report[0]);
+      if (!res.ok) {
+        const errData = await res.json();
+        setError(errData.error || 'Failed to submit report.');
+        setIsSubmitting(false);
+        return;
+      }
+      const { data } = await res.json();
+      setSubmittedReport(data[0]);
       setShowSuccessMessage(true);
       setIsSubmitting(false);
-      
-      // Debug: Check if the success message state is being set correctly
       setTimeout(() => {
-        console.log('Success message state:', { showSuccessMessage, submittedReport: report[0] });
+        console.log('Success message state:', { showSuccessMessage, submittedReport: data[0] });
       }, 100);
     } catch (err) {
       console.error("Error submitting report:", err);

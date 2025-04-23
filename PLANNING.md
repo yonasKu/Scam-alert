@@ -1,64 +1,63 @@
 # Scam Watch - Project Planning
 
 ## Vision
-Create a comprehensive consumer protection platform where users can report and track unfair business practices, including price gouging, missing receipts, suspicious activities, and other consumer issues. This provides transparency and accountability in the marketplace, empowering consumers with information to make better decisions.
+Empower Ethiopian consumers by providing a transparent, community-driven platform to report, search, and monitor scams and unethical business practices. The goal is to foster marketplace accountability and promote safer consumer decisions.
 
-## Architecture
-The application follows a modern web architecture:
-- Frontend: React-based UI with responsive design
-- Backend: API-driven data management (planned)
-- Database: Relational database for flexibility with report data (planned)
+## Architecture Overview
+- **Frontend:** Next.js (App Router) with React, TypeScript, and Tailwind CSS
+- **API/Data:** Next.js API routes (planned), with future Supabase/PostgreSQL integration
+- **Localization:** `next-intl` for multilingual support
+- **Image Handling:** Custom component with fallback support
+- **Mapping:** City/area-based geocoding with randomized marker offsets
 
 ## Tech Stack
-- **Frontend**: Next.js 15.3.0 with TypeScript
-- **UI Components**: Custom components with shadcn/ui primitives
-- **Styling**: CSS-in-JS with inline styles
-- **Fonts**: Acme (headings), Nunito (body)
-- **Backend**: Next.js API routes (planned)
-- **Database**: Supabase (PostgreSQL) for data storage, authentication, and file storage
-- **Authentication**: Supabase Auth
-- **Image Storage**: Supabase Storage
+- Next.js 15.x, TypeScript
+- React, Tailwind CSS
+- shadcn/ui primitives
+- next-intl (i18n)
+- (Planned) Supabase: database, auth, storage
 
-## Key Features (Prioritized)
-1. **Core Features** (Implemented)
-   - Multiple report types:
-     - Price Gouging Reports
-     - No Receipt Provided Reports
-     - Suspicious Activity Reports
-     - Unauthorized Business Reports
-     - False Advertising Reports
-     - Hidden Fees Reports
-   - Dynamic report form with type-specific fields
-   - Business listings with report categorization
-   - Consumer Watchlist for suspicious businesses
-   - Receipt Transparency tracking
+## Features Roadmap
+### Implemented
+- Multi-type scam reporting (price gouging, no receipt, suspicious activity, etc.)
+- Dynamic report forms and validation
+- Business directory with scam statistics
+- Watchlist for suspicious businesses
+- Receipt transparency tracking
+- Responsive, accessible UI
+- Localization (Amharic, English)
+- Image uploads for reports
+- Map visualization using city/area names
 
-2. **Enhanced Features** (In Progress)
-   - User registration and authentication
-   - Image upload for receipts/evidence
-   - Report filtering and search
-   - User profile and saved reports
-   
-3. **Advanced Features** (Planned)
-   - Location-based search/mapping
-   - Reporting analytics and trends
-   - Community engagement (comments, votes)
-   - Verified business responses
-   - Mobile app version
+### In Progress
+- Enhanced search and filtering
+- User registration/authentication
+- Profile and saved reports
+- Improved admin tools
+
+### Planned
+- Full Supabase backend integration
+- Real-time comments and voting
+- Analytics and trend dashboards
+- Verified business responses
+- Mobile app version
 
 ## Design Principles
-- Modern, clean interface with clear visual hierarchy
-- Mobile-first responsive design
-- Accessible to all users
-- Consistent visual language and component styling
-- Intuitive navigation and user flows
+- Clean, modern, and accessible design
+- Mobile-first, responsive layouts
+- Clear navigation and user flows
+- Privacy-first and inclusive
 
-## Content Organization
-- Homepage: Overview with recent reports and watchlist
-- Reports: All submitted reports with filtering options
-- New Report: Dynamic form based on report type
-- Businesses: Directory of reported businesses
-- Watchlist: Suspicious businesses with detailed information
+## Main Content Areas
+- **Home:** Overview, stats, latest reports
+- **Reports:** Browse/filter all scam reports
+- **Businesses:** Directory and business details
+- **Report Form:** Submit new scam reports
+- **Watchlist:** Track flagged businesses
+- **Map:** Visualize business locations
+
+---
+*This plan will be updated as the project evolves. See TASKS.md for actionable items and progress tracking.*
 
 ## User Experience Focus
 - Simple and intuitive reporting process
