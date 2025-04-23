@@ -105,3 +105,44 @@ export async function fetchReportsByType(reportType: ReportType) {
   if (error) throw error;
   return data;
 }
+
+// Fetch reports with pagination
+export async function fetchReportsPaginated(page: number = 1, pageSize: number = 12) {
+  console.log(`Fetching paginated reports: page ${page}, pageSize ${pageSize}`);
+  
+  // Calculate the range for pagination
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  
+  // First get the total count
+  const { count, error: countError } = await supabase
+    .from('reports')
+    .select('*', { count: 'exact', head: true });
+  
+  if (countError) {
+    console.error('Error counting reports:', countError.message);
+    throw countError;
+  }
+  
+  // Now fetch the paginated data
+  const { data, error } = await supabase
+    .from('reports')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .range(from, to);
+  
+  if (error) {
+    console.error('Error fetching paginated reports:', error.message);
+    throw error;
+  }
+  
+  console.log(`Successfully fetched ${data?.length || 0} reports (page ${page} of ${Math.ceil((count || 0) / pageSize)})`);
+  
+  return {
+    data: data || [],
+    total: count || 0,
+    page,
+    pageSize,
+    totalPages: Math.ceil((count || 0) / pageSize)
+  };
+}

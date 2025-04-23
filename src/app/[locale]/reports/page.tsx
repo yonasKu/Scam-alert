@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { usePathname } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { fetchReports, Report } from "@/lib/api/reports";
+import { fetchReports, fetchReportsPaginated, Report } from "@/lib/api/reports";
 import ReportCard from "@/components/ui/report-card";
 
 export default function ReportsPage() {
@@ -20,9 +20,17 @@ export default function ReportsPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [filteredReports, setFilteredReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('');
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 12; // Adjust based on your UI design
   
   // Stats state
   const [totalReports, setTotalReports] = useState(0);
@@ -49,12 +57,12 @@ export default function ReportsPage() {
     loadTranslations();
   }, [locale]);
   
-  // Fetch reports
+  // Fetch initial reports
   useEffect(() => {
-    async function getReports() {
+    async function getInitialReports() {
       try {
-        setLoading(true);
-        const data = await fetchReports();
+        setInitialLoading(true);
+        const { data, total, totalPages } = await fetchReportsPaginated(1, itemsPerPage);
         
         // Enhance reports with image URLs
         const enhancedReports = data.map((report) => ({
@@ -64,10 +72,12 @@ export default function ReportsPage() {
         
         setReports(enhancedReports);
         setFilteredReports(enhancedReports);
+        setTotalItems(total);
+        setHasMore(enhancedReports.length < total);
         setError(null);
         
         // Calculate stats
-        setTotalReports(enhancedReports.length);
+        setTotalReports(total);
         
         // Calculate unique businesses
         const uniqueBusinessNames = new Set(enhancedReports.map(report => report.business_name));
@@ -77,12 +87,43 @@ export default function ReportsPage() {
         console.error('Error fetching reports:', err);
         setError('Failed to load reports. Please try again later.');
       } finally {
+        setInitialLoading(false);
         setLoading(false);
       }
     }
     
-    getReports();
+    getInitialReports();
   }, []);
+  
+  // Function to load more reports
+  async function loadMoreReports() {
+    if (loadingMore) return;
+    
+    try {
+      setLoadingMore(true);
+      const nextPage = page + 1;
+      const { data, total } = await fetchReportsPaginated(nextPage, itemsPerPage);
+      
+      if (data.length === 0) {
+        setHasMore(false);
+        return;
+      }
+      
+      const enhancedReports = data.map((report) => ({
+        ...report,
+        imageUrl: report.photo_url || getRandomImageUrl()
+      }));
+      
+      setReports(prev => [...prev, ...enhancedReports]);
+      setFilteredReports(prev => [...prev, ...enhancedReports]);
+      setPage(nextPage);
+      setHasMore((reports.length + enhancedReports.length) < total);
+    } catch (err) {
+      console.error('Error fetching more reports:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }
   
   // Animate stats counters
   useEffect(() => {
@@ -150,7 +191,6 @@ export default function ReportsPage() {
   useEffect(() => {
     if (!translations || reports.length === 0) return;
     
-    // Create filter mapping
     const filterMapping: Record<string, string> = {
       [t('filterCategories.allReports')]: "All Reports",
       [t('filterCategories.groceries')]: "Groceries",
@@ -164,25 +204,44 @@ export default function ReportsPage() {
       [t('filterCategories.unauthorizedBusiness')]: "Unauthorized Business"
     };
     
-    const filtered = reports.filter(report => {
-      const matchesFilter = 
-        activeFilter === t('filterCategories.allReports') || 
-        report.category === filterMapping[activeFilter] ||
+    let filtered = [...reports];
+    
+    // Apply category filter
+    if (activeFilter && activeFilter !== t('filterCategories.allReports')) {
+      const englishCategory = filterMapping[activeFilter] || activeFilter;
+      filtered = filtered.filter(report => 
+        report.category === englishCategory ||
+        report.category.toLowerCase().includes(englishCategory.toLowerCase()) ||
         (activeFilter === t('filterCategories.noReceipt') && report.report_type === "no_receipt") ||
         (activeFilter === t('filterCategories.suspiciousActivity') && report.report_type === "suspicious_activity") ||
-        (activeFilter === t('filterCategories.unauthorizedBusiness') && report.report_type === "unauthorized_business");
-      
-      const matchesSearch = 
-        searchQuery === '' || 
-        report.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        report.business_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        report.description?.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      return matchesFilter && matchesSearch;
-    });
+        (activeFilter === t('filterCategories.unauthorizedBusiness') && report.report_type === "unauthorized_business")
+      );
+    }
+    
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(report => 
+        (report.title?.toLowerCase() || '').includes(query) ||
+        (report.business_name?.toLowerCase() || '').includes(query) ||
+        (report.description?.toLowerCase() || '').includes(query) ||
+        (report.location?.toLowerCase() || '').includes(query) ||
+        (report.category?.toLowerCase() || '').includes(query)
+      );
+    }
     
     setFilteredReports(filtered);
-  }, [reports, searchQuery, activeFilter, translations]);
+    
+    // Reset pagination when filters change
+    if (searchQuery.trim() || (activeFilter && activeFilter !== t('filterCategories.allReports'))) {
+      // If we're filtering, we don't know if there are more items without a new server request
+      // For simplicity, we'll disable "Load More" when filters are applied
+      setHasMore(false);
+    } else {
+      // If no filters are applied, we can use our original hasMore calculation
+      setHasMore(reports.length < totalItems);
+    }
+  }, [searchQuery, activeFilter, reports, translations, totalItems, t]);
   
   // Define report categories for filtering
   const categories = translations ? [
@@ -465,7 +524,7 @@ export default function ReportsPage() {
         </div>
         
         {/* Reports Grid */}
-        {loading ? (
+        {initialLoading ? (
           <div style={{ 
             padding: '3rem 2rem',
             textAlign: 'center',
@@ -561,15 +620,72 @@ export default function ReportsPage() {
             <div>{t('tryAdjustingYourFilters') || "Try adjusting your filters or search terms"}</div>
           </div>
         ) : (
-          <div style={{ 
-            display: "grid", 
-            gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", 
-            gap: "2rem"
-          }}>
-            {filteredReports.map((report) => (
-              <ReportCard key={report.id} report={report} locale={locale} translations={translations} />
-            ))}
-          </div>
+          <>
+            <div style={{ 
+              display: "grid", 
+              gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", 
+              gap: "2rem"
+            }}>
+              {filteredReports.map((report) => (
+                <ReportCard key={report.id} report={report} locale={locale} translations={translations} />
+              ))}
+            </div>
+            
+            {/* Load More Button */}
+            {hasMore && (
+              <div style={{ display: "flex", justifyContent: "center", margin: "2rem 0" }}>
+                <Button 
+                  onClick={loadMoreReports} 
+                  disabled={loadingMore}
+                  variant="outline"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    padding: "0.5rem 1.5rem"
+                  }}
+                >
+                  {loadingMore ? (
+                    <>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        style={{ animation: "spin 1s linear infinite" }}
+                      >
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                      </svg>
+                      {t('loading') || "Loading..."}
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="7 13 12 18 17 13"></polyline>
+                        <polyline points="7 6 12 11 17 6"></polyline>
+                      </svg>
+                      {t('loadMore') || "Load More"}
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

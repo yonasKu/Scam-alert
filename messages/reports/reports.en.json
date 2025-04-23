@@ -61,7 +61,8 @@
     "closeButton": "Close"
   },
   "noReportsFound": "No reports found for the selected filter.",
-  "loadMore": "Load More Reports",
+  "loadMore": "Load More",
+  "loading": "Loading...",
   "originalPrice": "Original Price",
   "gougedPrice": "Gouged Price",
   "receiptIssue": "Receipt Issue",

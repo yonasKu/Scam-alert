@@ -61,7 +61,8 @@
     "closeButton": "ዝጋ"
   },
   "noReportsFound": "ለተመረጠው አጣሪ ምንም ሪፖርቶች አልተገኙም።",
-  "loadMore": "ተጨማሪ ሪፖርቶችን ጫን",
+  "loadMore": "ተጨማሪ ጫን",
+  "loading": "በመጫን ላይ...",
   "originalPrice": "የመጀመሪያ ዋጋ",
   "gougedPrice": "የጨመረ ዋጋ",
   "receiptIssue": "የደረሰኝ ችግር",
