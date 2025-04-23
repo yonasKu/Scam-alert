@@ -17,24 +17,43 @@ export const ImageWithFallback = ({
 }: ImageWithFallbackProps) => {
   const [imgSrc, setImgSrc] = React.useState(src);
   const [error, setError] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    // Only update the image source if it's a new image or we haven't had an error yet
-    if (src !== imgSrc && !error) {
-      setImgSrc(src);
-      setError(false);
-    }
-  }, [src, imgSrc, error]);
+    setImgSrc(src);
+    setError(false);
+    setLoading(true);
+  }, [src]);
 
   return (
-    <Image
-      {...props}
-      src={error ? fallbackSrc : imgSrc}
-      alt={alt || 'Image'}
-      onError={() => {
-        setError(true);
-        setImgSrc(fallbackSrc);
-      }}
-    />
+    <>
+      {loading && (
+        <div style={{
+          width: props.width || '100%',
+          height: props.height || '100%',
+          background: '#f3f3f3',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <img src={fallbackSrc} alt="placeholder" style={{ width: 40, height: 40, opacity: 0.3 }} />
+        </div>
+      )}
+      <Image
+        {...props}
+        src={error ? fallbackSrc : imgSrc}
+        alt={alt || 'Image'}
+        style={{
+          ...(props.style || {}),
+          display: loading ? 'none' : 'block',
+        }}
+        onLoad={() => setLoading(false)}
+        onError={() => {
+          setError(true);
+          setImgSrc(fallbackSrc);
+          setLoading(false);
+        }}
+      />
+    </>
   );
 };

@@ -1,64 +1,39 @@
 # Scam Watch - Task Tracking
 
 ## Completed Tasks
+- Project setup with Next.js, TypeScript, Tailwind CSS
+- Responsive layout and navigation
+- Home page with recent reports and statistics
+- Multi-type scam reporting (price gouging, no receipt, suspicious activity, etc.)
+- Dynamic report forms with validation
+- Business directory with scam statistics
+- Watchlist for suspicious businesses
+- Receipt transparency tracking
+- Modal and badge components
+- Consistent styling and color system
+- Internationalization (Amharic, English)
+- Card-based layouts for reports/businesses
+- Image upload and fallback handling
+- Map visualization using Ethiopian city/area names
 
-### Core Features
-- [x] Establish project structure with Next.js 15.3.0
-- [x] Set up responsive layout with header and footer
-- [x] Create dynamic home page with recent reports and statistics
-- [x] Implement price gouging reporting form with validation
-- [x] Expand reporting capabilities:
-  - [x] No Receipt reports
-  - [x] Suspicious Activity reports 
-  - [x] Unauthorized Business reports
-  - [x] False Advertising reports
-  - [x] Hidden Fees reports
-- [x] Create visual report type selector with icons
-- [x] Build reports page with filtering options
-- [x] Implement businesses page with detailed listings
-- [x] Add watchlist page for suspicious businesses
-- [x] Create receipt transparency tracking section
-- [x] Add modal for viewing business details in receipt transparency section
-- [x] Add Badge component for business verification/alert levels
-- [x] Design consistent styling across all pages
-- [x] Add responsive navigation with mobile menu
-- [x] Fix CSS styling issues and hydration errors
-- [x] Implement internationalization with next-intl and [locale] routing
-- [x] Add Amharic and English translation files
-- [x] Configure next-intl and next.config for App Router
+## In Progress
+- Enhanced search and filtering for reports/businesses
+- User registration and authentication (Supabase integration)
+- User profiles and dashboards
+- Improved admin tools and moderation
+- Advanced UI/UX polish
 
-### Visual and UI Improvements
-- [x] Add gradient text for section headings
-- [x] Implement card-based layouts for reports and businesses
-- [x] Create visual indicators for report severity
-- [x] Add hover states and animations for interactive elements
-- [x] Improve button styling and consistency
-- [x] Implement responsive grid layouts
-- [x] Add icons for different report types
-- [x] Create consistent color system for categories
+## Planned / Next Steps
+- Full Supabase backend: API routes, database, authentication, storage
+- Real-time features: comments, voting, notifications
+- Analytics and trend dashboards
+- Verified business responses and moderation workflows
+- Mobile app version
+- Accessibility and performance improvements
+- Add more languages and regional support
 
-### Navigation and Structure
-- [x] Update main navigation to include Watchlist
-- [x] Fix footer links to only include existing pages
-- [x] Add clear calls-to-action on the home page
-- [x] Create logical information hierarchy
-- [x] Implement breadcrumbs for navigation (implied)
-
-## Pending Tasks
-
-### Short-term Tasks
-- [ ] Set up backend API routes for report submission (Supabase integration)
-- [ ] Implement data persistence with Supabase database connection
-- [ ] Add user authentication for report submission (Supabase Auth)
-- [ ] Create user profiles and dashboards
-- [ ] Add image upload functionality for evidence (Supabase Storage)
-- [ ] Implement advanced search and filtering (location, business, category)
-- [ ] Add form save/draft functionality
-- [ ] Add comment functionality for reports (Supabase real-time)
-- [ ] Add report voting/verification system
-
-### Mid-term Tasks
-- [ ] Create admin dashboard for report moderation
+---
+*This file is updated as features are completed and new tasks are identified. See PLANNING.md for high-level roadmap and README.md for project overview.*
 - [ ] Add email notifications for report updates
 - [ ] Implement geolocation for business mapping
 - [ ] Create verified business response system

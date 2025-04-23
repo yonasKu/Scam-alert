@@ -241,7 +241,7 @@ export default function ReportsPage() {
       // If no filters are applied, we can use our original hasMore calculation
       setHasMore(reports.length < totalItems);
     }
-  }, [searchQuery, activeFilter, reports, translations, totalItems, t]);
+  }, [searchQuery, activeFilter, reports, translations, totalItems]);
   
   // Define report categories for filtering
   const categories = translations ? [
