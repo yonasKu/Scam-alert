@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase";
 import { useRouter, useParams } from "next/navigation";
 import { uploadImage } from "@/lib/storage";
+import { useCsrfToken } from "@/hooks/useCsrfToken";
+import { ZodError } from "zod";
+import { reportSchema, ReportInput } from "@/lib/validation/report-schema";
 
 import { FormField } from "./FormField";
 import { PhotoUpload } from "./PhotoUpload";
@@ -132,73 +134,151 @@ export function ReportForm({ t, windowWidth }: ReportFormProps) {
     }, 300);
   };
 
+  // Add CSRF protection
+  const { csrfToken, isLoading: csrfLoading, error: csrfError, fetchWithCsrf } = useCsrfToken();
+  
+  // Show CSRF loading or error states
+  useEffect(() => {
+    if (csrfError) {
+      setError(t('form.errors.csrfError', { 
+        default: 'Security token error. Please refresh the page and try again.'
+      }));
+    }
+  }, [csrfError, t]);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
+    
+    // Don't proceed if CSRF token is not ready
+    if (csrfLoading || !csrfToken) {
+      setError(t('form.errors.securityTokenMissing', { 
+        default: 'Security token not ready. Please wait a moment and try again.'
+      }));
+      setIsSubmitting(false);
+      return;
+    }
     
     try {
       // Handle photo upload - using our storage module
       let photoUrl = null;
       
       if (formData.photo) {
-        // Try to upload to Supabase storage first
-        photoUrl = await uploadImage(formData.photo, 'reports', 'report-photos');
-        
-        // If storage upload fails, fall back to using the data URL
-        if (!photoUrl && formData.photoPreview) {
-          photoUrl = formData.photoPreview;
+        try {
+          // Try to upload to Supabase storage first
+          photoUrl = await uploadImage(formData.photo, 'reports', 'report-photos');
+          
+          // If storage upload fails, fall back to using the data URL
+          if (!photoUrl && formData.photoPreview) {
+            photoUrl = formData.photoPreview;
+          }
+        } catch (uploadError) {
+          console.error('Image upload error:', uploadError);
+          // Continue without the image if upload fails
         }
       }
       
-      // Prepare report data
-      const payload = {
+      // Prepare report data for insertion
+      let reportData: Record<string, any> = {
         title: formData.title,
         business_name: formData.businessName,
         location: formData.location,
-        category: formData.category,
+        category: formData.category || formData.reportType,
         description: formData.description,
-        photo_url: photoUrl,
-        reporter_contact: formData.contact,
-        report_type: formData.reportType,
-        price_before: formData.priceBefore || null,
-        price_after: formData.priceAfter || null,
-        receipt_issue: formData.receiptIssue || null,
-        suspicious_activity: formData.suspiciousActivity || null,
-        unauthorized_issue: formData.unauthorizedIssue || null,
-        item: formData.item || null,
-        created_at: new Date().toISOString(),
+        image_url: photoUrl,
+        contact: formData.contact || null,
+        report_type: formData.reportType || 'price_gouging',
       };
-
-      // POST to our backend API
-      const res = await fetch('/api/reports', {
+      
+      // Add type-specific fields based on report type
+      if (formData.reportType === 'price_gouging') {
+        reportData = {
+          ...reportData,
+          price_before: parseFloat(formData.priceBefore) || null,
+          price_after: parseFloat(formData.priceAfter) || null,
+          item: formData.item || null,
+        };
+      } else if (formData.reportType === 'receipt_transparency') {
+        reportData = {
+          ...reportData,
+          receipt_issue_type: formData.receiptIssue || null,
+        };
+      }
+      
+      // Validate report data using Zod schema before sending
+      try {
+        reportSchema.parse(reportData);
+      } catch (validationError) {
+        if (validationError instanceof ZodError) {
+          const errorMessages = validationError.errors.map(err => 
+            `${err.path.join('.')}: ${err.message}`
+          ).join(', ');
+          setError(t('form.errors.validationFailed', { 
+            default: `Validation failed: ${errorMessages}` 
+          }));
+          setIsSubmitting(false);
+          return;
+        }
+        throw validationError;
+      }
+      
+      // Post to our API with CSRF protection
+      const response = await fetchWithCsrf('/api/reports', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(reportData),
       });
-
-      if (res.status === 429) {
-        setError(t('form.errors.dailyQuotaExceeded', { default: 'You have reached your daily report limit. Please try again tomorrow.' }));
-        setIsSubmitting(false);
-        return;
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        // Handle specific error cases
+        if (response.status === 429) {
+          if (result.error === 'daily_quota_exceeded') {
+            setError(t('form.errors.dailyQuotaExceeded', {
+              default: 'You have reached the daily limit for submitting reports.'
+            }));
+          } else {
+            setError(t('form.errors.tooManyRequests', {
+              default: 'Too many requests. Please wait a moment and try again.'
+            }));
+          }
+          setIsSubmitting(false);
+          return;
+        }
+        
+        if (response.status === 400 && result.details) {
+          // Structured validation errors from the server
+          const errorMessage = t('form.errors.validationServer', {
+            default: 'Please check your form data:'
+          }) + ' ' + JSON.stringify(result.details);
+          setError(errorMessage);
+          setIsSubmitting(false);
+          return;
+        }
+        
+        throw new Error(result.error || 'Error submitting report');
       }
-      if (!res.ok) {
-        const errData = await res.json();
-        setError(errData.error || 'Failed to submit report.');
-        setIsSubmitting(false);
-        return;
-      }
-      const { data } = await res.json();
-      setSubmittedReport(data[0]);
+      
+      // Success! Show success message
+      setSubmittedReport(result.data?.[0] || result.data);
       setShowSuccessMessage(true);
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      setError(t('form.errors.submissionFailed', {
+        default: 'Failed to submit your report. Please try again later.'
+      }));
+    } finally {
       setIsSubmitting(false);
-      setTimeout(() => {
-        console.log('Success message state:', { showSuccessMessage, submittedReport: data[0] });
-      }, 100);
-    } catch (err) {
-      console.error("Error submitting report:", err);
-      setError(err instanceof Error ? err.message : "Unknown error");
-      setIsSubmitting(false);
+      // Debug log for success case (only if submittedReport exists)
+      if (submittedReport) {
+        setTimeout(() => {
+          console.log('Success message state:', { showSuccessMessage, submittedReport });
+        }, 100);
+      }
     }
   };
 
